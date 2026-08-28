@@ -20,4 +20,20 @@ public class FileStorage {
             directory.mkdirs();
         }
     }
+
+    public List<Category> loadCategories() {
+        List<Category> categories = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(CATEGORY_FILE))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] parts = line.split("\\|"); 
+                if (parts.length == 2) {
+                    categories.add(new Category(parts[0], parts[1]));
+                }
+            }
+        } catch (IOException e) {
+        }
+        return categories;
+    }
 }
