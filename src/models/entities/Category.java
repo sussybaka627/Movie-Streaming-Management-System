@@ -1,4 +1,4 @@
-package model;
+package models.entities;
 
 public class Category {
     private String id;
