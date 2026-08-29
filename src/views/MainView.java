@@ -1,10 +1,13 @@
 package views;
-
+import controllers.CategoryController;
+import models.entities.Category;
+import utils.ValidationUtil;
+import java.util.List;
 import java.util.Scanner;
 
 public class MainView {
     private Scanner scanner;
-    
+    private CategoryController categoryController = new CategoryController();
     public MainView() {
         this.scanner = new Scanner(System.in);
     }
@@ -65,14 +68,59 @@ public class MainView {
     }
 
     private void manageCategoriesMenu() {
+    boolean back = false;
+    while (!back) {
         System.out.println("\n--- CATEGORY MANAGEMENT ---");
         System.out.println("1. View all categories");
         System.out.println("2. Add a new category");
         System.out.println("3. Update a category");
         System.out.println("4. Delete a category");
         System.out.println("0. Go back");
-        System.out.print("Choice: ");
-        scanner.nextLine(); 
+        
+        int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 4);
+
+        switch (choice) {
+            case 1:
+                List<Category> list = categoryController.getAllCategories();
+                if (list.isEmpty()) {
+                    System.out.println("No categories found.");
+                } else {
+                    for (Category c : list) {
+                        System.out.println(c.toString());
+                    }
+                }
+                break;
+            case 2:
+                String id = ValidationUtil.getString(scanner, "Enter Category ID (e.g., C01): ");
+                String name = ValidationUtil.getString(scanner, "Enter Category Name: ");
+                if (categoryController.addCategory(id, name)) {
+                    System.out.println("Category added successfully!");
+                } else {
+                    System.out.println("Error: Category ID already exists.");
+                }
+                break;
+            case 3:
+                String updateId = ValidationUtil.getString(scanner, "Enter Category ID to update: ");
+                String newName = ValidationUtil.getString(scanner, "Enter new Category Name: ");
+                if (categoryController.updateCategory(updateId, newName)) {
+                    System.out.println("Category updated successfully!");
+                } else {
+                    System.out.println("Error: Category not found.");
+                }
+                break;
+            case 4:
+                String deleteId = ValidationUtil.getString(scanner, "Enter Category ID to delete: ");
+                if (categoryController.deleteCategory(deleteId)) {
+                    System.out.println("Category deleted successfully!");
+                } else {
+                    System.out.println("Error: Category not found.");
+                }
+                break;
+            case 0:
+                back = true;
+                break;
+            }
+        }
     }
 
     private void manageMoviesMenu() {
@@ -98,4 +146,6 @@ public class MainView {
         System.out.println("(Under construction... Press Enter to go back)");
         scanner.nextLine();
     }
+
+    
 }
