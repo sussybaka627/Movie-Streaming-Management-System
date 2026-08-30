@@ -4,10 +4,13 @@ import models.entities.Category;
 import utils.ValidationUtil;
 import java.util.List;
 import java.util.Scanner;
+import controllers.MovieController;
+import models.entities.Movie;
 
 public class MainView {
     private Scanner scanner;
     private CategoryController categoryController = new CategoryController();
+    private MovieController movieController = new MovieController();
     public MainView() {
         this.scanner = new Scanner(System.in);
     }
@@ -124,9 +127,114 @@ public class MainView {
     }
 
     private void manageMoviesMenu() {
-        System.out.println("\n--- MOVIE MANAGEMENT ---");
-        System.out.println("(Under construction... Press Enter to go back)");
-        scanner.nextLine();
+        boolean back = false;
+        while (!back) {
+            System.out.println("\n--- MOVIE MANAGEMENT ---");
+            System.out.println("1. View all movies");
+            System.out.println("2. Add a new movie");
+            System.out.println("3. Update a movie");
+            System.out.println("4. Delete a movie");
+            System.out.println("0. Go back");
+            
+            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 4);
+
+            switch (choice) {
+                case 1:
+                    List<Movie> list = movieController.getAllMovies();
+                    if (list.isEmpty()) {
+                        System.out.println("No movies found.");
+                    } else {
+                        for (Movie m : list) {
+                            System.out.println(m.toString());
+                        }
+                    }
+                    break;
+
+                case 2:
+                    System.out.println("\n[ Add New Movie ]");
+                    String id = ValidationUtil.getString(scanner, "Enter Movie ID (e.g., M01): ");
+                    
+                    // Kiểm tra ID tồn tại ngay từ đầu để tránh bắt nhập một đống rồi mới báo lỗi
+                    if (movieController.findMovieById(id) != null) {
+                        System.out.println("Error: Movie ID already exists.");
+                        break;
+                    }
+
+                    String title = ValidationUtil.getString(scanner, "Enter Title: ");
+                    String director = ValidationUtil.getString(scanner, "Enter Director: ");
+                    String actor = ValidationUtil.getString(scanner, "Enter Main Actor: ");
+
+                    // In danh sách Category để người dùng dễ chọn ID
+                    System.out.println("\n--- Available Categories ---");
+                    List<Category> cats = categoryController.getAllCategories();
+                    if (cats.isEmpty()) {
+                        System.out.println("(No categories available. You should add categories first.)");
+                    } else {
+                        for (Category c : cats) {
+                            System.out.println("- " + c.getId() + ": " + c.getName());
+                        }
+                    }
+                    
+                    String categoryId = ValidationUtil.getString(scanner, "Enter Category ID: ");
+                    double rating = ValidationUtil.getDouble(scanner, "Enter Rating (0.0 - 10.0): ", 0.0, 10.0);
+                    int year = ValidationUtil.getInt(scanner, "Enter Release Year (1900 - 2026): ", 1900, 2026);
+                    int duration = ValidationUtil.getInt(scanner, "Enter Duration in minutes (1 - 500): ", 1, 500);
+
+                    if (movieController.addMovie(id, title, director, actor, categoryId, rating, year, duration)) {
+                        System.out.println("Movie added successfully!");
+                    } else {
+                        System.out.println("Failed to add movie.");
+                    }
+                    break;
+
+                case 3:
+                    System.out.println("\n[ Update Movie ]");
+                    String updateId = ValidationUtil.getString(scanner, "Enter Movie ID to update: ");
+                    Movie existingMovie = movieController.findMovieById(updateId);
+                    
+                    if (existingMovie == null) {
+                        System.out.println("Error: Movie not found.");
+                        break;
+                    }
+                    
+                    System.out.println("Updating Movie: " + existingMovie.getTitle());
+                    String newTitle = ValidationUtil.getString(scanner, "Enter new Title: ");
+                    String newDirector = ValidationUtil.getString(scanner, "Enter new Director: ");
+                    String newActor = ValidationUtil.getString(scanner, "Enter new Main Actor: ");
+                    String newCatId = ValidationUtil.getString(scanner, "Enter new Category ID: ");
+                    double newRating = ValidationUtil.getDouble(scanner, "Enter new Rating (0.0 - 10.0): ", 0.0, 10.0);
+                    int newYear = ValidationUtil.getInt(scanner, "Enter new Release Year (1900 - 2026): ", 1900, 2026);
+                    int newDuration = ValidationUtil.getInt(scanner, "Enter new Duration in minutes (1 - 500): ", 1, 500);
+
+                    if (movieController.updateMovie(updateId, newTitle, newDirector, newActor, newCatId, newRating, newYear, newDuration)) {
+                        System.out.println("Movie updated successfully!");
+                    }
+                    break;
+
+                case 4:
+                    System.out.println("\n[ Delete Movie ]");
+                    String deleteId = ValidationUtil.getString(scanner, "Enter Movie ID to delete: ");
+                    
+                    if (movieController.findMovieById(deleteId) == null) {
+                        System.out.println("Error: Movie not found.");
+                        break;
+                    }
+
+                    boolean confirm = ValidationUtil.getConfirm(scanner, "Are you sure you want to delete this movie?");
+                    if (confirm) {
+                        if (movieController.deleteMovie(deleteId)) {
+                            System.out.println("Movie deleted successfully!");
+                        }
+                    } else {
+                        System.out.println("Deletion cancelled.");
+                    }
+                    break;
+
+                case 0:
+                    back = true;
+                    break;
+            }
+        }
     }
 
     private void searchAndSortMenu() {
