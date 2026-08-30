@@ -1,24 +1,22 @@
 package controllers;
 
 import data.FileHandler;
+import models.datastructures.MyLinkedList;
 import models.entities.Movie;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class MovieController {
-    private List<Movie> movies;
+    private MyLinkedList<Movie> movies;
     private FileHandler fileHandler;
 
     public MovieController() {
         this.fileHandler = new FileHandler();
         this.movies = fileHandler.loadMovies();
         if (this.movies == null) {
-            this.movies = new ArrayList<>();
+            this.movies = new MyLinkedList<>();
         }
     }
 
-    public List<Movie> getAllMovies() {
+    public MyLinkedList<Movie> getAllMovies() {
         return movies;
     }
 
@@ -65,7 +63,8 @@ public class MovieController {
     }
 
     public Movie findMovieById(String id) {
-        for (Movie movie : movies) {
+        for (int i = 0; i < movies.size(); i++) {
+            Movie movie = movies.get(i);
             if (movie.getId().equalsIgnoreCase(id)) {
                 return movie;
             }

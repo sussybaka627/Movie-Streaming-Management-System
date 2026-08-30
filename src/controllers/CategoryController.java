@@ -1,24 +1,22 @@
 package controllers;
 
 import data.FileHandler;
+import models.datastructures.MyLinkedList;
 import models.entities.Category;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class CategoryController {
-    private List<Category> categories;
+    private MyLinkedList<Category> categories;
     private FileHandler fileHandler;
 
     public CategoryController() {
         this.fileHandler = new FileHandler();
         this.categories = fileHandler.loadCategories();
         if (this.categories == null) {
-            this.categories = new ArrayList<>();
+            this.categories = new MyLinkedList<>();
         }
     }
 
-    public List<Category> getAllCategories() {
+    public MyLinkedList<Category> getAllCategories() {
         return categories;
     }
 
@@ -53,7 +51,8 @@ public class CategoryController {
     }
 
     public Category findCategoryById(String id) {
-        for (Category cat : categories) {
+        for (int i = 0; i < categories.size(); i++) {
+            Category cat = categories.get(i);
             if (cat.getId().equalsIgnoreCase(id)) {
                 return cat;
             }

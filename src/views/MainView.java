@@ -1,16 +1,19 @@
 package views;
+
 import controllers.CategoryController;
-import models.entities.Category;
-import utils.ValidationUtil;
-import java.util.List;
-import java.util.Scanner;
 import controllers.MovieController;
+import models.datastructures.MyLinkedList;
+import models.entities.Category;
 import models.entities.Movie;
+import utils.ValidationUtil;
+
+import java.util.Scanner;
 
 public class MainView {
     private Scanner scanner;
     private CategoryController categoryController = new CategoryController();
     private MovieController movieController = new MovieController();
+
     public MainView() {
         this.scanner = new Scanner(System.in);
     }
@@ -71,57 +74,57 @@ public class MainView {
     }
 
     private void manageCategoriesMenu() {
-    boolean back = false;
-    while (!back) {
-        System.out.println("\n--- CATEGORY MANAGEMENT ---");
-        System.out.println("1. View all categories");
-        System.out.println("2. Add a new category");
-        System.out.println("3. Update a category");
-        System.out.println("4. Delete a category");
-        System.out.println("0. Go back");
-        
-        int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 4);
+        boolean back = false;
+        while (!back) {
+            System.out.println("\n--- CATEGORY MANAGEMENT ---");
+            System.out.println("1. View all categories");
+            System.out.println("2. Add a new category");
+            System.out.println("3. Update a category");
+            System.out.println("4. Delete a category");
+            System.out.println("0. Go back");
+            
+            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 4);
 
-        switch (choice) {
-            case 1:
-                List<Category> list = categoryController.getAllCategories();
-                if (list.isEmpty()) {
-                    System.out.println("No categories found.");
-                } else {
-                    for (Category c : list) {
-                        System.out.println(c.toString());
+            switch (choice) {
+                case 1:
+                    MyLinkedList<Category> list = categoryController.getAllCategories();
+                    if (list.isEmpty()) {
+                        System.out.println("No categories found.");
+                    } else {
+                        for (int i = 0; i < list.size(); i++) {
+                            System.out.println(list.get(i).toString());
+                        }
                     }
-                }
-                break;
-            case 2:
-                String id = ValidationUtil.getString(scanner, "Enter Category ID (e.g., C01): ");
-                String name = ValidationUtil.getString(scanner, "Enter Category Name: ");
-                if (categoryController.addCategory(id, name)) {
-                    System.out.println("Category added successfully!");
-                } else {
-                    System.out.println("Error: Category ID already exists.");
-                }
-                break;
-            case 3:
-                String updateId = ValidationUtil.getString(scanner, "Enter Category ID to update: ");
-                String newName = ValidationUtil.getString(scanner, "Enter new Category Name: ");
-                if (categoryController.updateCategory(updateId, newName)) {
-                    System.out.println("Category updated successfully!");
-                } else {
-                    System.out.println("Error: Category not found.");
-                }
-                break;
-            case 4:
-                String deleteId = ValidationUtil.getString(scanner, "Enter Category ID to delete: ");
-                if (categoryController.deleteCategory(deleteId)) {
-                    System.out.println("Category deleted successfully!");
-                } else {
-                    System.out.println("Error: Category not found.");
-                }
-                break;
-            case 0:
-                back = true;
-                break;
+                    break;
+                case 2:
+                    String id = ValidationUtil.getString(scanner, "Enter Category ID (e.g., C01): ");
+                    String name = ValidationUtil.getString(scanner, "Enter Category Name: ");
+                    if (categoryController.addCategory(id, name)) {
+                        System.out.println("Category added successfully!");
+                    } else {
+                        System.out.println("Error: Category ID already exists.");
+                    }
+                    break;
+                case 3:
+                    String updateId = ValidationUtil.getString(scanner, "Enter Category ID to update: ");
+                    String newName = ValidationUtil.getString(scanner, "Enter new Category Name: ");
+                    if (categoryController.updateCategory(updateId, newName)) {
+                        System.out.println("Category updated successfully!");
+                    } else {
+                        System.out.println("Error: Category not found.");
+                    }
+                    break;
+                case 4:
+                    String deleteId = ValidationUtil.getString(scanner, "Enter Category ID to delete: ");
+                    if (categoryController.deleteCategory(deleteId)) {
+                        System.out.println("Category deleted successfully!");
+                    } else {
+                        System.out.println("Error: Category not found.");
+                    }
+                    break;
+                case 0:
+                    back = true;
+                    break;
             }
         }
     }
@@ -140,12 +143,12 @@ public class MainView {
 
             switch (choice) {
                 case 1:
-                    List<Movie> list = movieController.getAllMovies();
+                    MyLinkedList<Movie> list = movieController.getAllMovies();
                     if (list.isEmpty()) {
                         System.out.println("No movies found.");
                     } else {
-                        for (Movie m : list) {
-                            System.out.println(m.toString());
+                        for (int i = 0; i < list.size(); i++) {
+                            System.out.println(list.get(i).toString());
                         }
                     }
                     break;
@@ -154,7 +157,6 @@ public class MainView {
                     System.out.println("\n[ Add New Movie ]");
                     String id = ValidationUtil.getString(scanner, "Enter Movie ID (e.g., M01): ");
                     
-                    // Kiểm tra ID tồn tại ngay từ đầu để tránh bắt nhập một đống rồi mới báo lỗi
                     if (movieController.findMovieById(id) != null) {
                         System.out.println("Error: Movie ID already exists.");
                         break;
@@ -164,13 +166,13 @@ public class MainView {
                     String director = ValidationUtil.getString(scanner, "Enter Director: ");
                     String actor = ValidationUtil.getString(scanner, "Enter Main Actor: ");
 
-                    // In danh sách Category để người dùng dễ chọn ID
                     System.out.println("\n--- Available Categories ---");
-                    List<Category> cats = categoryController.getAllCategories();
+                    MyLinkedList<Category> cats = categoryController.getAllCategories();
                     if (cats.isEmpty()) {
                         System.out.println("(No categories available. You should add categories first.)");
                     } else {
-                        for (Category c : cats) {
+                        for (int i = 0; i < cats.size(); i++) {
+                            Category c = cats.get(i);
                             System.out.println("- " + c.getId() + ": " + c.getName());
                         }
                     }
@@ -254,6 +256,4 @@ public class MainView {
         System.out.println("(Under construction... Press Enter to go back)");
         scanner.nextLine();
     }
-
-    
 }

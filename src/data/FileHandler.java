@@ -1,9 +1,8 @@
 package data;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
+import models.datastructures.MyLinkedList;
 import models.entities.Category;
 import models.entities.Movie;
 import models.entities.WatchRecord;
@@ -21,8 +20,8 @@ public class FileHandler {
         }
     }
 
-    public List<Category> loadCategories() {
-        List<Category> categories = new ArrayList<>();
+    public MyLinkedList<Category> loadCategories() {
+        MyLinkedList<Category> categories = new MyLinkedList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(CATEGORY_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -37,9 +36,10 @@ public class FileHandler {
         return categories;
     }
 
-    public void saveCategories(List<Category> categories) {
+    public void saveCategories(MyLinkedList<Category> categories) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(CATEGORY_FILE))) {
-            for (Category cat : categories) {
+            for (int i = 0; i < categories.size(); i++) {
+                Category cat = categories.get(i);
                 writer.write(cat.toDataString());
                 writer.newLine();
             }
@@ -48,8 +48,8 @@ public class FileHandler {
         }
     }
 
-    public List<Movie> loadMovies() {
-        List<Movie> movies = new ArrayList<>();
+    public MyLinkedList<Movie> loadMovies() {
+        MyLinkedList<Movie> movies = new MyLinkedList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(MOVIE_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -72,9 +72,10 @@ public class FileHandler {
         return movies;
     }
 
-    public void saveMovies(List<Movie> movies) {
+    public void saveMovies(MyLinkedList<Movie> movies) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(MOVIE_FILE))) {
-            for (Movie movie : movies) {
+            for (int i = 0; i < movies.size(); i++) {
+                Movie movie = movies.get(i);
                 writer.write(movie.toDataString());
                 writer.newLine();
             }
@@ -83,8 +84,8 @@ public class FileHandler {
         }
     }
 
-    public List<WatchRecord> loadHistory() {
-        List<WatchRecord> history = new ArrayList<>();
+    public MyLinkedList<WatchRecord> loadHistory() {
+        MyLinkedList<WatchRecord> history = new MyLinkedList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(HISTORY_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -100,9 +101,10 @@ public class FileHandler {
         return history;
     }
 
-    public void saveHistory(List<WatchRecord> history) {
+    public void saveHistory(MyLinkedList<WatchRecord> history) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(HISTORY_FILE))) {
-            for (WatchRecord record : history) {
+            for (int i = 0; i < history.size(); i++) {
+                WatchRecord record = history.get(i);
                 writer.write(record.toDataString());
                 writer.newLine();
             }
