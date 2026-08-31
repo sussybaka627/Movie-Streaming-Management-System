@@ -240,9 +240,61 @@ public class MainView {
     }
 
     private void searchAndSortMenu() {
-        System.out.println("\n--- SEARCH & SORT ---");
-        System.out.println("(Under construction... Press Enter to go back)");
-        scanner.nextLine();
+        boolean back = false;
+        while (!back) {
+            System.out.println("\n--- SEARCH & SORT ---");
+            System.out.println("1. Search movies (by Title/Actor/Director)");
+            System.out.println("2. Sort movies");
+            System.out.println("0. Go back");
+            
+            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 2);
+
+            switch (choice) {
+                case 1:
+                    String keyword = ValidationUtil.getString(scanner, "Enter keyword to search: ");
+                    MyLinkedList<Movie> results = movieController.searchMovies(keyword);
+                    
+                    if (results.isEmpty()) {
+                        System.out.println("No movies found matching: '" + keyword + "'");
+                    } else {
+                        System.out.println("\n--- Search Results ---");
+                        for (int i = 0; i < results.size(); i++) {
+                            System.out.println(results.get(i).toString());
+                        }
+                        System.out.println("----------------------");
+                        System.out.println("Total: " + results.size() + " movie(s) found.");
+                    }
+                    break;
+                case 2:
+                    System.out.println("\n--- SORT MOVIES ---");
+                    System.out.println("1. By Rating (High to Low)");
+                    System.out.println("2. By Release Year (Newest to Oldest)");
+                    System.out.println("0. Cancel");
+                    
+                    int sortChoice = ValidationUtil.getInt(scanner, "Choose sort criteria: ", 0, 2);
+                    
+                    if (sortChoice == 1) {
+                        movieController.sortMoviesByRating();
+                        System.out.println("\nMovies sorted by Rating successfully!");
+                    } else if (sortChoice == 2) {
+                        movieController.sortMoviesByYear();
+                        System.out.println("\nMovies sorted by Release Year successfully!");
+                    } else {
+                        break;
+                    }
+
+                    System.out.println("\n--- Sorted Movie List ---");
+                    MyLinkedList<Movie> sortedList = movieController.getAllMovies();
+                    for (int i = 0; i < sortedList.size(); i++) {
+                        System.out.println(sortedList.get(i).toString());
+                    }
+                    System.out.println("-------------------------");
+                    break;
+                case 0:
+                    back = true;
+                    break;
+            }
+        }
     }
 
     private void watchlistMenu() {
