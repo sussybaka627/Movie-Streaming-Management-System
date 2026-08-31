@@ -71,4 +71,52 @@ public class MovieController {
         }
         return null;
     }
+
+    public MyLinkedList<Movie> searchMovies(String keyword) {
+        MyLinkedList<Movie> searchResults = new MyLinkedList<>();
+        String lowerKeyword = keyword.toLowerCase(); 
+
+        for (int i = 0; i < movies.size(); i++) {
+            Movie movie = movies.get(i);
+            if (movie.getTitle().toLowerCase().contains(lowerKeyword) ||
+                movie.getDirector().toLowerCase().contains(lowerKeyword) ||
+                movie.getActor().toLowerCase().contains(lowerKeyword)) {
+                
+                searchResults.add(movie);
+            }
+        }
+        return searchResults;
+    }
+
+    public void sortMoviesByRating() {
+        int n = movies.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                Movie m1 = movies.get(j);
+                Movie m2 = movies.get(j + 1);
+                
+                if (m1.getRating() < m2.getRating()) {
+                    movies.set(j, m2);
+                    movies.set(j + 1, m1);
+                }
+            }
+        }
+        fileHandler.saveMovies(movies);
+    }
+
+    public void sortMoviesByYear() {
+        int n = movies.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                Movie m1 = movies.get(j);
+                Movie m2 = movies.get(j + 1);
+                
+                if (m1.getReleaseYear() < m2.getReleaseYear()) {
+                    movies.set(j, m2);
+                    movies.set(j + 1, m1);
+                }
+            }
+        }
+        fileHandler.saveMovies(movies);
+    }
 }

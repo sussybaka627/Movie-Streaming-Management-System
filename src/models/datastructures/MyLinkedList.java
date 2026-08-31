@@ -67,4 +67,15 @@ public class MyLinkedList<T> {
     public boolean isEmpty() {
         return size == 0;
     }
+
+    public void set(int index, T data) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+        }
+        Node<T> current = head;
+        for (int i = 0; i < index; i++) {
+            current = current.getNext();
+        }
+        current.setData(data);
+    }
 }
