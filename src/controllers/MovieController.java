@@ -119,4 +119,33 @@ public class MovieController {
         }
         fileHandler.saveMovies(movies);
     }
+
+    public MyLinkedList<Movie> getFavoriteMovies() {
+        MyLinkedList<Movie> favList = new MyLinkedList<>();
+        for (int i = 0; i < movies.size(); i++) {
+            Movie movie = movies.get(i);
+            if (movie.getFavorites() > 0) {
+                favList.add(movie);
+            }
+        }
+        return favList;
+    }
+
+    public boolean toggleFavorite(String id, boolean isAdding) {
+        Movie movie = findMovieById(id);
+        if (movie == null) {
+            return false;
+        }
+        
+        if (isAdding) {
+            movie.setFavorites(movie.getFavorites() + 1);
+        } else {
+            if (movie.getFavorites() > 0) {
+                movie.setFavorites(movie.getFavorites() - 1);
+            }
+        }
+        
+        fileHandler.saveMovies(movies);
+        return true;
+    }
 }

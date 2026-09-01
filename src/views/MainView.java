@@ -2,6 +2,7 @@ package views;
 
 import controllers.CategoryController;
 import controllers.MovieController;
+import controllers.WatchlistController;
 import models.datastructures.MyLinkedList;
 import models.entities.Category;
 import models.entities.Movie;
@@ -13,6 +14,7 @@ public class MainView {
     private Scanner scanner;
     private CategoryController categoryController = new CategoryController();
     private MovieController movieController = new MovieController();
+    private WatchlistController watchlistController = new WatchlistController();
 
     public MainView() {
         this.scanner = new Scanner(System.in);
@@ -37,7 +39,10 @@ public class MainView {
                 case 4:
                     watchlistMenu();
                     break;
-                case 5:
+                case 5: 
+                    favoriteMoviesMenu(); 
+                    break;
+                case 6:
                     historyAndStatsMenu();
                     break;
                 case 0:
@@ -57,8 +62,9 @@ public class MainView {
         System.out.println("1. Manage Categories (Category CRUD)");
         System.out.println("2. Manage Movies (Movie CRUD)");
         System.out.println("3. Search & Sort Movies");
-        System.out.println("4. Watchlist & Favorites");
-        System.out.println("5. Viewing History & Statistics");
+        System.out.println("4. Watchlist (Playlist)");
+        System.out.println("5. Favorite Movies");
+        System.out.println("6. Viewing History & Statistics");
         System.out.println("0. Save & Exit");
         System.out.println("=============================================");
         System.out.print("Enter your choice: ");
@@ -298,11 +304,106 @@ public class MainView {
     }
 
     private void watchlistMenu() {
-        System.out.println("\n--- WATCHLIST & FAVORITES ---");
-        System.out.println("(Under construction... Press Enter to go back)");
-        scanner.nextLine();
+        boolean back = false;
+        while (!back) {
+            System.out.println("\n--- WATCHLIST (PLAYLIST) ---");
+            System.out.println("1. View Watchlist");
+            System.out.println("2. Add Movie to Watchlist");
+            System.out.println("3. Watch Next Movie (Dequeue)");
+            System.out.println("4. Undo Last Watch (Pop Stack)");
+            System.out.println("0. Go back");
+            
+            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 4);
+
+            switch (choice) {
+                case 1:
+                    watchlistController.displayWatchlist();
+                    break;
+                case 2:
+                    String movieId = ValidationUtil.getString(scanner, "Enter Movie ID to add: ");
+                    Movie movie = movieController.findMovieById(movieId);
+                    
+                    if (movie != null) {
+                        watchlistController.addMovieToWatchlist(movie);
+                        System.out.println("Added '" + movie.getTitle() + "' to your watchlist!");
+                    } else {
+                        System.out.println("Error: Movie ID not found.");
+                    }
+                    break;
+                case 3:
+                    Movie watchedMovie = watchlistController.watchNext();
+                    if (watchedMovie != null) {
+                        System.out.println("Now watching: " + watchedMovie.getTitle());
+                        watchedMovie.setViews(watchedMovie.getViews() + 1);
+                        movieController.updateMovie(watchedMovie.getId(), watchedMovie.getTitle(), 
+                            watchedMovie.getDirector(), watchedMovie.getActor(), watchedMovie.getCategoryId(), 
+                            watchedMovie.getRating(), watchedMovie.getReleaseYear(), watchedMovie.getDurationMinutes());
+                            
+                    } else {
+                        System.out.println("Your watchlist is empty! Add some movies first.");
+                    }
+                    break;
+                case 4:
+                    Movie restoredMovie = watchlistController.undoLastWatch();
+                    if (restoredMovie != null) {
+                        System.out.println("Undo successful! '" + restoredMovie.getTitle() + "' has been added back to the watchlist.");
+                    } else {
+                        System.out.println("Nothing to undo.");
+                    }
+                    break;
+                case 0:
+                    back = true;
+                    break;
+            }
+        }
     }
 
+    private void favoriteMoviesMenu() {
+        boolean back = false;
+        while (!back) {
+            System.out.println("\n--- FAVORITE MOVIES ---");
+            System.out.println("1. View my favorite movies");
+            System.out.println("2. Add a movie to favorites");
+            System.out.println("3. Remove a movie from favorites");
+            System.out.println("0. Go back");
+            
+            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 3);
+
+            switch (choice) {
+                case 1:
+                    MyLinkedList<Movie> favMovies = movieController.getFavoriteMovies();
+                    if (favMovies.isEmpty()) {
+                        System.out.println("You haven't favorited any movies yet.");
+                    } else {
+                        System.out.println("\n[ My Favorites List ]");
+                        for (int i = 0; i < favMovies.size(); i++) {
+                            System.out.println(favMovies.get(i).toString());
+                        }
+                    }
+                    break;
+                case 2:
+                    String addId = ValidationUtil.getString(scanner, "Enter Movie ID to add to favorites: ");
+                    if (movieController.toggleFavorite(addId, true)) {
+                        System.out.println("Added to favorites successfully!");
+                    } else {
+                        System.out.println("Error: Movie ID not found.");
+                    }
+                    break;
+                case 3:
+                    String removeId = ValidationUtil.getString(scanner, "Enter Movie ID to remove from favorites: ");
+                    if (movieController.toggleFavorite(removeId, false)) {
+                        System.out.println("Removed from favorites successfully!");
+                    } else {
+                        System.out.println("Error: Movie ID not found.");
+                    }
+                    break;
+                case 0:
+                    back = true;
+                    break;
+            }
+        }
+    }
+    
     private void historyAndStatsMenu() {
         System.out.println("\n--- HISTORY & STATISTICS ---");
         System.out.println("(Under construction... Press Enter to go back)");
