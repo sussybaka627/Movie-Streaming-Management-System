@@ -143,9 +143,10 @@ public class MainView {
             System.out.println("2. Add a new movie");
             System.out.println("3. Update a movie");
             System.out.println("4. Delete a movie");
+            System.out.println("5. View movie details");
             System.out.println("0. Go back");
             
-            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 4);
+            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 5);
 
             switch (choice) {
                 case 1:
@@ -237,7 +238,35 @@ public class MainView {
                         System.out.println("Deletion cancelled.");
                     }
                     break;
+                case 5:
+                    System.out.println("\n[ View Movie Details ]");
+                    String detailId = ValidationUtil.getString(scanner, "Enter Movie ID: ");
+                    Movie detailMovie = movieController.findMovieById(detailId);
+                    
+                    if (detailMovie == null) {
+                        System.out.println("Error: Movie not found.");
+                    } else {
+                        System.out.println("\n=============================================");
+                        System.out.println("               MOVIE DETAILS                 ");
+                        System.out.println("=============================================");
+                        System.out.println("ID           : " + detailMovie.getId());
+                        System.out.println("Title        : " + detailMovie.getTitle());
+                        System.out.println("Director     : " + detailMovie.getDirector());
+                        System.out.println("Main Actor   : " + detailMovie.getActor());
 
+                        Category cat = categoryController.findCategoryById(detailMovie.getCategoryId());
+                        String catName = (cat != null) ? cat.getName() : "Unknown";
+
+                        System.out.println("Category     : " + catName + " (" + detailMovie.getCategoryId() + ")");
+                        System.out.println("Release Year : " + detailMovie.getReleaseYear());
+                        System.out.println("Duration     : " + detailMovie.getDurationMinutes() + " mins");
+                        System.out.println("Rating       : " + detailMovie.getRating() + "/10.0");
+                        System.out.println("Views        : " + detailMovie.getViews());
+                        System.out.println("Favorites    : " + detailMovie.getFavorites());
+                        System.out.printf("Ranking Score: %.2f\n", detailMovie.getRankingScore());
+                        System.out.println("=============================================");
+                    }
+                    break;
                 case 0:
                     back = true;
                     break;
@@ -251,9 +280,10 @@ public class MainView {
             System.out.println("\n--- SEARCH & SORT ---");
             System.out.println("1. Search movies (by Title/Actor/Director)");
             System.out.println("2. Sort movies");
+            System.out.println("3. Browse movies by Category");
             System.out.println("0. Go back");
             
-            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 2);
+            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 3);
 
             switch (choice) {
                 case 1:
@@ -295,6 +325,43 @@ public class MainView {
                         System.out.println(sortedList.get(i).toString());
                     }
                     System.out.println("-------------------------");
+                    break;
+                case 3:
+                    System.out.println("\n--- Available Categories ---");
+                    MyLinkedList<Category> cats = categoryController.getAllCategories();
+                    if (cats.isEmpty()) {
+                        System.out.println("(No categories available.)");
+                    } else {
+                        for (int i = 0; i < cats.size(); i++) {
+                            Category c = cats.get(i);
+                            System.out.println("- " + c.getId() + ": " + c.getName());
+                        }
+                        String catInput = ValidationUtil.getString(scanner, "\nEnter Category ID or Name to browse: ").toLowerCase();
+                        
+                        String targetCatId = catInput;
+                        String targetCatName = catInput;
+                        for (int i = 0; i < cats.size(); i++) {
+                            Category c = cats.get(i);
+                            if (c.getId().toLowerCase().equals(catInput) || 
+                                c.getName().toLowerCase().contains(catInput)) {
+                                targetCatId = c.getId();
+                                targetCatName = c.getName();
+                                break;
+                            }
+                        }
+                        
+                        MyLinkedList<Movie> catMovies = movieController.getMoviesByCategory(targetCatId);
+                        
+                        if (catMovies.isEmpty()) {
+                            System.out.println("No movies found for category: '" + catInput + "'");
+                        } else {
+                            System.out.println("\n--- Movies in Category: " + targetCatName + " (" + targetCatId + ") ---");
+                            for (int i = 0; i < catMovies.size(); i++) {
+                                System.out.println(catMovies.get(i).toString());
+                            }
+                            System.out.println("Total: " + catMovies.size() + " movie(s).");
+                        }
+                    }
                     break;
                 case 0:
                     back = true;

@@ -148,4 +148,15 @@ public class MovieController {
         fileHandler.saveMovies(movies);
         return true;
     }
+
+    public MyLinkedList<Movie> getMoviesByCategory(String categoryId) {
+        MyLinkedList<Movie> result = new MyLinkedList<>();
+        for (int i = 0; i < movies.size(); i++) {
+            Movie m = movies.get(i);
+            if (m.getCategoryId().equalsIgnoreCase(categoryId)) {
+                result.add(m);
+            }
+        }
+        return result;
+    }
 }
