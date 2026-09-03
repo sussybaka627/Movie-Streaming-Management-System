@@ -412,9 +412,7 @@ public class MainView {
 
                         if (historyController.getRecordByMovieId(watchedMovie.getId()) == null) {
                             watchedMovie.setViews(watchedMovie.getViews() + 1);
-                            movieController.updateMovie(watchedMovie.getId(), watchedMovie.getTitle(), 
-                                watchedMovie.getDirector(), watchedMovie.getActor(), watchedMovie.getCategoryId(), 
-                                watchedMovie.getRating(), watchedMovie.getReleaseYear(), watchedMovie.getDurationMinutes());
+                            movieController.saveAllMoviesData();
                         }
 
                         historyController.saveOrUpdateRecord(watchedMovie.getId(), minutesToWatch);

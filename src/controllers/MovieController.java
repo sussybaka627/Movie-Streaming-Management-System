@@ -159,4 +159,8 @@ public class MovieController {
         }
         return result;
     }
+
+    public void saveAllMoviesData() {
+        fileHandler.saveMovies(movies);
+    }
 }
