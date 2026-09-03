@@ -163,4 +163,34 @@ public class MovieController {
     public void saveAllMoviesData() {
         fileHandler.saveMovies(movies);
     }
+
+    public void sortMoviesByTitle() {
+        int n = movies.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                Movie m1 = movies.get(j);
+                Movie m2 = movies.get(j + 1);
+                if (m1.getTitle().compareToIgnoreCase(m2.getTitle()) > 0) {
+                    movies.set(j, m2);
+                    movies.set(j + 1, m1);
+                }
+            }
+        }
+        fileHandler.saveMovies(movies);
+    }
+
+    public void sortMoviesByPopularity() {
+        int n = movies.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                Movie m1 = movies.get(j);
+                Movie m2 = movies.get(j + 1);
+                if (m1.getViews() < m2.getViews()) {
+                    movies.set(j, m2);
+                    movies.set(j + 1, m1);
+                }
+            }
+        }
+        fileHandler.saveMovies(movies);
+    }
 }

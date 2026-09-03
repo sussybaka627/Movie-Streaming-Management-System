@@ -306,28 +306,41 @@ public class MainView {
                     break;
                 case 2:
                     System.out.println("\n--- SORT MOVIES ---");
-                    System.out.println("1. By Rating (High to Low)");
-                    System.out.println("2. By Release Year (Newest to Oldest)");
+                    System.out.println("1. By Title (A to Z)");
+                    System.out.println("2. By Rating (High to Low)");
+                    System.out.println("3. By Release Year (Newest to Oldest)");
+                    System.out.println("4. By Popularity (Most Views)");
                     System.out.println("0. Cancel");
                     
-                    int sortChoice = ValidationUtil.getInt(scanner, "Choose sort criteria: ", 0, 2);
+                    int sortChoice = ValidationUtil.getInt(scanner, "Choose sort criteria: ", 0, 4);
                     
-                    if (sortChoice == 1) {
-                        movieController.sortMoviesByRating();
-                        System.out.println("\nMovies sorted by Rating successfully!");
-                    } else if (sortChoice == 2) {
-                        movieController.sortMoviesByYear();
-                        System.out.println("\nMovies sorted by Release Year successfully!");
-                    } else {
-                        break;
+                    switch (sortChoice) {
+                        case 1:
+                            movieController.sortMoviesByTitle();
+                            System.out.println("\nMovies sorted by Title successfully!");
+                            break;
+                        case 2:
+                            movieController.sortMoviesByRating();
+                            System.out.println("\nMovies sorted by Rating successfully!");
+                            break;
+                        case 3:
+                            movieController.sortMoviesByYear();
+                            System.out.println("\nMovies sorted by Release Year successfully!");
+                            break;
+                        case 4:
+                            movieController.sortMoviesByPopularity();
+                            System.out.println("\nMovies sorted by Popularity successfully!");
+                            break;
                     }
-
-                    System.out.println("\n--- Sorted Movie List ---");
-                    MyLinkedList<Movie> sortedList = movieController.getAllMovies();
-                    for (int i = 0; i < sortedList.size(); i++) {
-                        System.out.println(sortedList.get(i).toString());
+                    
+                    if (sortChoice != 0) {
+                        System.out.println("\n--- Sorted Movie List ---");
+                        MyLinkedList<Movie> sortedList = movieController.getAllMovies();
+                        for (int i = 0; i < sortedList.size(); i++) {
+                            System.out.println(sortedList.get(i).toString());
+                        }
+                        System.out.println("-------------------------");
                     }
-                    System.out.println("-------------------------");
                     break;
                 case 3:
                     System.out.println("\n--- Available Categories ---");
