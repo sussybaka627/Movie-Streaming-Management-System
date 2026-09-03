@@ -491,9 +491,10 @@ public class MainView {
             System.out.println("2. View My Statistics Dashboard");
             System.out.println("3. Trending Movies (Most Viewed)");
             System.out.println("4. Continue Watching");
+            System.out.println("5. Trending Categories (Most Viewed)");
             System.out.println("0. Go back");
             
-            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 4);
+            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 5); 
 
             switch (choice) {
                 case 1:
@@ -530,11 +531,11 @@ public class MainView {
                     System.out.println("\n--- Trending Movies (Top 3 Most Viewed) ---");
                     MyLinkedList<Movie> originalMovies = movieController.getAllMovies();
                     MyLinkedList<Movie> tempSortList = new MyLinkedList<>();
-
+                    
                     for (int i = 0; i < originalMovies.size(); i++) {
                         tempSortList.add(originalMovies.get(i));
                     }
-
+                    
                     for (int i = 0; i < tempSortList.size() - 1; i++) {
                         for (int j = 0; j < tempSortList.size() - i - 1; j++) {
                             Movie m1 = tempSortList.get(j);
@@ -545,23 +546,26 @@ public class MainView {
                             }
                         }
                     }
-
+                    
                     int limit = Math.min(3, tempSortList.size());
+                    boolean hasTrendingMovie = false;
                     for (int i = 0; i < limit; i++) {
                         Movie m = tempSortList.get(i);
                         if (m.getViews() > 0) {
                             System.out.printf("TOP %d: %s | %d Views\n", (i+1), m.getTitle(), m.getViews());
+                            hasTrendingMovie = true;
                         }
                     }
-                    if (limit == 0 || tempSortList.get(0).getViews() == 0) {
+                    if (!hasTrendingMovie) {
                         System.out.println("No viewing data available yet to determine trends.");
                     }
                     break;
+                    
                 case 4:
                     System.out.println("\n--- Continue Watching ---");
                     MyLinkedList<WatchRecord> allHistory = historyController.getAllHistory();
                     boolean hasUnfinished = false;
-
+                    
                     for (int i = 0; i < allHistory.size(); i++) {
                         WatchRecord record = allHistory.get(i);
                         Movie m = movieController.findMovieById(record.getMovieId());
@@ -597,6 +601,71 @@ public class MainView {
                         System.out.println("Error: Invalid ID or movie is already fully watched.");
                     }
                     break;
+
+                case 5:
+                    System.out.println("\n--- Trending Categories (Top 3) ---");
+                    MyLinkedList<Category> allCats = categoryController.getAllCategories();
+                    MyLinkedList<Movie> allMvs = movieController.getAllMovies();
+                    
+                    if (allCats.isEmpty()) {
+                        System.out.println("No categories available.");
+                        break;
+                    }
+
+                    MyLinkedList<Category> tempCats = new MyLinkedList<>();
+                    for (int i = 0; i < allCats.size(); i++) {
+                        tempCats.add(allCats.get(i));
+                    }
+
+                    for (int i = 0; i < tempCats.size() - 1; i++) {
+                        for (int j = 0; j < tempCats.size() - i - 1; j++) {
+                            Category c1 = tempCats.get(j);
+                            Category c2 = tempCats.get(j + 1);
+                            
+                            int views1 = 0;
+                            for(int k = 0; k < allMvs.size(); k++) {
+                                if(allMvs.get(k).getCategoryId().equalsIgnoreCase(c1.getId())) {
+                                    views1 += allMvs.get(k).getViews();
+                                }
+                            }
+                            
+                            int views2 = 0;
+                            for(int k = 0; k < allMvs.size(); k++) {
+                                if(allMvs.get(k).getCategoryId().equalsIgnoreCase(c2.getId())) {
+                                    views2 += allMvs.get(k).getViews();
+                                }
+                            }
+                            
+                            if (views1 < views2) {
+                                tempCats.set(j, c2);
+                                tempCats.set(j + 1, c1);
+                            }
+                        }
+                    }
+
+                    int catLimit = Math.min(3, tempCats.size());
+                    boolean hasTrendingCat = false;
+                    
+                    for (int i = 0; i < catLimit; i++) {
+                        Category c = tempCats.get(i);
+                        int totalViews = 0;
+                        for(int k = 0; k < allMvs.size(); k++) {
+                            if(allMvs.get(k).getCategoryId().equalsIgnoreCase(c.getId())) {
+                                totalViews += allMvs.get(k).getViews();
+                            }
+                        }
+                        
+                        if (totalViews > 0) {
+                            System.out.printf("TOP %d: %s (ID: %s) | Total Views: %d\n", (i+1), c.getName(), c.getId(), totalViews);
+                            hasTrendingCat = true;
+                        }
+                    }
+                    
+                    if (!hasTrendingCat) {
+                        System.out.println("No viewing data available yet to determine trending categories.");
+                    }
+                    break;
+
                 case 0:
                     back = true;
                     break;
