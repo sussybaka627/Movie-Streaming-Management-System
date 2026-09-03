@@ -530,27 +530,32 @@ public class MainView {
                     
                 case 3:
                     System.out.println("\n--- Trending Movies (Top 3 Most Viewed) ---");
-                    MyLinkedList<Movie> allMovies = movieController.getAllMovies();
+                    MyLinkedList<Movie> originalMovies = movieController.getAllMovies();
+                    MyLinkedList<Movie> tempSortList = new MyLinkedList<>();
 
-                    for (int i = 0; i < allMovies.size() - 1; i++) {
-                        for (int j = 0; j < allMovies.size() - i - 1; j++) {
-                            Movie m1 = allMovies.get(j);
-                            Movie m2 = allMovies.get(j + 1);
+                    for (int i = 0; i < originalMovies.size(); i++) {
+                        tempSortList.add(originalMovies.get(i));
+                    }
+
+                    for (int i = 0; i < tempSortList.size() - 1; i++) {
+                        for (int j = 0; j < tempSortList.size() - i - 1; j++) {
+                            Movie m1 = tempSortList.get(j);
+                            Movie m2 = tempSortList.get(j + 1);
                             if (m1.getViews() < m2.getViews()) {
-                                allMovies.set(j, m2);
-                                allMovies.set(j + 1, m1);
+                                tempSortList.set(j, m2);
+                                tempSortList.set(j + 1, m1);
                             }
                         }
                     }
 
-                    int limit = Math.min(3, allMovies.size());
+                    int limit = Math.min(3, tempSortList.size());
                     for (int i = 0; i < limit; i++) {
-                        Movie m = allMovies.get(i);
+                        Movie m = tempSortList.get(i);
                         if (m.getViews() > 0) {
                             System.out.printf("TOP %d: %s | %d Views\n", (i+1), m.getTitle(), m.getViews());
                         }
                     }
-                    if (limit == 0 || allMovies.get(0).getViews() == 0) {
+                    if (limit == 0 || tempSortList.get(0).getViews() == 0) {
                         System.out.println("No viewing data available yet to determine trends.");
                     }
                     break;
@@ -558,8 +563,7 @@ public class MainView {
                     System.out.println("\n--- Continue Watching ---");
                     MyLinkedList<WatchRecord> allHistory = historyController.getAllHistory();
                     boolean hasUnfinished = false;
-                    
-                    // Lọc ra các phim có số phút đã xem < tổng thời lượng
+
                     for (int i = 0; i < allHistory.size(); i++) {
                         WatchRecord record = allHistory.get(i);
                         Movie m = movieController.findMovieById(record.getMovieId());
