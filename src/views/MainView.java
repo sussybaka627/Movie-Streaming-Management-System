@@ -1,11 +1,13 @@
 package views;
 
 import controllers.CategoryController;
+import controllers.HistoryController;
 import controllers.MovieController;
 import controllers.WatchlistController;
 import models.datastructures.MyLinkedList;
 import models.entities.Category;
 import models.entities.Movie;
+import models.entities.WatchRecord;
 import utils.ValidationUtil;
 
 import java.util.Scanner;
@@ -15,6 +17,7 @@ public class MainView {
     private CategoryController categoryController = new CategoryController();
     private MovieController movieController = new MovieController();
     private WatchlistController watchlistController = new WatchlistController();
+    private HistoryController historyController = new HistoryController();
 
     public MainView() {
         this.scanner = new Scanner(System.in);
@@ -400,11 +403,22 @@ public class MainView {
                 case 3:
                     Movie watchedMovie = watchlistController.watchNext();
                     if (watchedMovie != null) {
-                        System.out.println("Now watching: " + watchedMovie.getTitle());
-                        watchedMovie.setViews(watchedMovie.getViews() + 1);
-                        movieController.updateMovie(watchedMovie.getId(), watchedMovie.getTitle(), 
-                            watchedMovie.getDirector(), watchedMovie.getActor(), watchedMovie.getCategoryId(), 
-                            watchedMovie.getRating(), watchedMovie.getReleaseYear(), watchedMovie.getDurationMinutes());
+                        System.out.println("\n▶ Now watching: " + watchedMovie.getTitle());
+                        System.out.println("Total duration: " + watchedMovie.getDurationMinutes() + " mins");
+
+                        int minutesToWatch = ValidationUtil.getInt(scanner, 
+                            "How many minutes will you watch now? (1 - " + watchedMovie.getDurationMinutes() + "): ", 
+                            1, watchedMovie.getDurationMinutes());
+
+                        if (historyController.getRecordByMovieId(watchedMovie.getId()) == null) {
+                            watchedMovie.setViews(watchedMovie.getViews() + 1);
+                            movieController.updateMovie(watchedMovie.getId(), watchedMovie.getTitle(), 
+                                watchedMovie.getDirector(), watchedMovie.getActor(), watchedMovie.getCategoryId(), 
+                                watchedMovie.getRating(), watchedMovie.getReleaseYear(), watchedMovie.getDurationMinutes());
+                        }
+
+                        historyController.saveOrUpdateRecord(watchedMovie.getId(), minutesToWatch);
+                        System.out.println("Watched " + minutesToWatch + " minutes. Progress saved!");
                             
                     } else {
                         System.out.println("Your watchlist is empty! Add some movies first.");
@@ -470,10 +484,121 @@ public class MainView {
             }
         }
     }
-    
+
     private void historyAndStatsMenu() {
-        System.out.println("\n--- HISTORY & STATISTICS ---");
-        System.out.println("(Under construction... Press Enter to go back)");
-        scanner.nextLine();
+        boolean back = false;
+        while (!back) {
+            System.out.println("\n--- HISTORY & STATISTICS ---");
+            System.out.println("1. View Watching History");
+            System.out.println("2. View My Statistics Dashboard");
+            System.out.println("3. Trending Movies (Most Viewed)");
+            System.out.println("4. Continue Watching");
+            System.out.println("0. Go back");
+            
+            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 4);
+
+            switch (choice) {
+                case 1:
+                    MyLinkedList<WatchRecord> historyList = historyController.getAllHistory();
+                    if (historyList.isEmpty()) {
+                        System.out.println("You haven't watched any movies yet.");
+                    } else {
+                        System.out.println("\n--- Your Watching History ---");
+                        for (int i = 0; i < historyList.size(); i++) {
+                            WatchRecord record = historyList.get(i);
+                            Movie m = movieController.findMovieById(record.getMovieId());
+                            String title = (m != null) ? m.getTitle() : "Unknown Movie";
+                            System.out.printf("%d. %s | Time: %d mins\n", (i+1), title, record.getWatchedMinutes());
+                        }
+                    }
+                    break;
+                    
+                case 2:
+                    System.out.println("\n=============================================");
+                    System.out.println("             USER DASHBOARD STATS            ");
+                    System.out.println("=============================================");
+                    
+                    int totalMinutes = historyController.getTotalWatchTime();
+                    int totalMoviesWatched = historyController.getAllHistory().size();
+                    int favCount = movieController.getFavoriteMovies().size();
+                    
+                    System.out.println("Total Movies Watched : " + totalMoviesWatched);
+                    System.out.println("Total Watch Time     : " + totalMinutes + " mins (" + (totalMinutes/60) + " hours)");
+                    System.out.println("Movies in Favorites  : " + favCount);
+                    System.out.println("=============================================");
+                    break;
+                    
+                case 3:
+                    System.out.println("\n--- Trending Movies (Top 3 Most Viewed) ---");
+                    MyLinkedList<Movie> allMovies = movieController.getAllMovies();
+
+                    for (int i = 0; i < allMovies.size() - 1; i++) {
+                        for (int j = 0; j < allMovies.size() - i - 1; j++) {
+                            Movie m1 = allMovies.get(j);
+                            Movie m2 = allMovies.get(j + 1);
+                            if (m1.getViews() < m2.getViews()) {
+                                allMovies.set(j, m2);
+                                allMovies.set(j + 1, m1);
+                            }
+                        }
+                    }
+
+                    int limit = Math.min(3, allMovies.size());
+                    for (int i = 0; i < limit; i++) {
+                        Movie m = allMovies.get(i);
+                        if (m.getViews() > 0) {
+                            System.out.printf("TOP %d: %s | %d Views\n", (i+1), m.getTitle(), m.getViews());
+                        }
+                    }
+                    if (limit == 0 || allMovies.get(0).getViews() == 0) {
+                        System.out.println("No viewing data available yet to determine trends.");
+                    }
+                    break;
+                case 4:
+                    System.out.println("\n--- Continue Watching ---");
+                    MyLinkedList<WatchRecord> allHistory = historyController.getAllHistory();
+                    boolean hasUnfinished = false;
+                    
+                    // Lọc ra các phim có số phút đã xem < tổng thời lượng
+                    for (int i = 0; i < allHistory.size(); i++) {
+                        WatchRecord record = allHistory.get(i);
+                        Movie m = movieController.findMovieById(record.getMovieId());
+                        
+                        if (m != null && record.getWatchedMinutes() < m.getDurationMinutes()) {
+                            System.out.printf("- %s (ID: %s) | Progress: %d/%d mins\n", 
+                                m.getTitle(), m.getId(), record.getWatchedMinutes(), m.getDurationMinutes());
+                            hasUnfinished = true;
+                        }
+                    }
+                    
+                    if (!hasUnfinished) {
+                        System.out.println("You don't have any unfinished movies!");
+                        break;
+                    }
+                    
+                    String continueId = ValidationUtil.getString(scanner, "\nEnter Movie ID to continue watching (or type '0' to cancel): ");
+                    if (continueId.equals("0")) break;
+                    
+                    WatchRecord currentRecord = historyController.getRecordByMovieId(continueId);
+                    Movie continueMovie = movieController.findMovieById(continueId);
+                    
+                    if (currentRecord != null && continueMovie != null && currentRecord.getWatchedMinutes() < continueMovie.getDurationMinutes()) {
+                        int remaining = continueMovie.getDurationMinutes() - currentRecord.getWatchedMinutes();
+                        System.out.println("\n▶ Resuming: " + continueMovie.getTitle());
+                        System.out.println("Remaining time: " + remaining + " mins.");
+                        
+                        int addMins = ValidationUtil.getInt(scanner, "How many minutes do you want to watch now? (1 - " + remaining + "): ", 1, remaining);
+                        
+                        historyController.saveOrUpdateRecord(continueId, addMins);
+                        System.out.println("Watched " + addMins + " more minutes. Welcome back!");
+                    } else {
+                        System.out.println("Error: Invalid ID or movie is already fully watched.");
+                    }
+                    break;
+                case 0:
+                    back = true;
+                    break;
+            }
+        }
     }
 }
