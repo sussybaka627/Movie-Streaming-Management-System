@@ -487,14 +487,15 @@ public class MainView {
         boolean back = false;
         while (!back) {
             System.out.println("\n--- HISTORY & STATISTICS ---");
-            System.out.println("1. View Watching History");
-            System.out.println("2. View My Statistics Dashboard");
-            System.out.println("3. Trending Movies (Most Viewed)");
-            System.out.println("4. Continue Watching");
-            System.out.println("5. Trending Categories (Most Viewed)");
+            System.out.println("1. View Watching History (Full Log)");
+            System.out.println("2. Recently Watched Movies (Top 3)");
+            System.out.println("3. View My Statistics Dashboard");
+            System.out.println("4. Trending Movies (Most Viewed)");
+            System.out.println("5. Continue Watching");
+            System.out.println("6. Trending Categories (Most Viewed)");
             System.out.println("0. Go back");
-            
-            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 5); 
+
+            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 6); 
 
             switch (choice) {
                 case 1:
@@ -502,7 +503,7 @@ public class MainView {
                     if (historyList.isEmpty()) {
                         System.out.println("You haven't watched any movies yet.");
                     } else {
-                        System.out.println("\n--- Your Watching History ---");
+                        System.out.println("\n--- Full Watching History ---");
                         for (int i = 0; i < historyList.size(); i++) {
                             WatchRecord record = historyList.get(i);
                             Movie m = movieController.findMovieById(record.getMovieId());
@@ -513,6 +514,39 @@ public class MainView {
                     break;
                     
                 case 2:
+                    MyLinkedList<WatchRecord> allHistoryForRecent = historyController.getAllHistory();
+                    if (allHistoryForRecent.isEmpty()) {
+                        System.out.println("You haven't watched any movies yet.");
+                    } else {
+                        System.out.println("\n--- Recently Watched (Quick Access) ---");
+
+                        MyLinkedList<WatchRecord> recentList = new MyLinkedList<>();
+                        for (int i = 0; i < allHistoryForRecent.size(); i++) {
+                            recentList.add(allHistoryForRecent.get(i));
+                        }
+
+                        for (int i = 0; i < recentList.size() - 1; i++) {
+                            for (int j = 0; j < recentList.size() - i - 1; j++) {
+                                WatchRecord r1 = recentList.get(j);
+                                WatchRecord r2 = recentList.get(j + 1);
+                                if (r1.getLastWatchTime() < r2.getLastWatchTime()) {
+                                    recentList.set(j, r2);
+                                    recentList.set(j + 1, r1);
+                                }
+                            }
+                        }
+
+                        int limit = Math.min(3, recentList.size());
+                        for (int i = 0; i < limit; i++) {
+                            WatchRecord record = recentList.get(i);
+                            Movie m = movieController.findMovieById(record.getMovieId());
+                            String title = (m != null) ? m.getTitle() : "Unknown Movie";
+                            System.out.printf("Recent %d: %s | Watched: %d mins\n", (i+1), title, record.getWatchedMinutes());
+                        }
+                    }
+                    break;
+                    
+                case 3:
                     System.out.println("\n=============================================");
                     System.out.println("             USER DASHBOARD STATS            ");
                     System.out.println("=============================================");
@@ -527,7 +561,7 @@ public class MainView {
                     System.out.println("=============================================");
                     break;
                     
-                case 3:
+                case 4:
                     System.out.println("\n--- Trending Movies (Top 3 Most Viewed) ---");
                     MyLinkedList<Movie> originalMovies = movieController.getAllMovies();
                     MyLinkedList<Movie> tempSortList = new MyLinkedList<>();
@@ -547,9 +581,9 @@ public class MainView {
                         }
                     }
                     
-                    int limit = Math.min(3, tempSortList.size());
+                    int movieLimit = Math.min(3, tempSortList.size());
                     boolean hasTrendingMovie = false;
-                    for (int i = 0; i < limit; i++) {
+                    for (int i = 0; i < movieLimit; i++) {
                         Movie m = tempSortList.get(i);
                         if (m.getViews() > 0) {
                             System.out.printf("TOP %d: %s | %d Views\n", (i+1), m.getTitle(), m.getViews());
@@ -561,7 +595,7 @@ public class MainView {
                     }
                     break;
                     
-                case 4:
+                case 5:
                     System.out.println("\n--- Continue Watching ---");
                     MyLinkedList<WatchRecord> allHistory = historyController.getAllHistory();
                     boolean hasUnfinished = false;
@@ -602,7 +636,7 @@ public class MainView {
                     }
                     break;
 
-                case 5:
+                case 6:
                     System.out.println("\n--- Trending Categories (Top 3) ---");
                     MyLinkedList<Category> allCats = categoryController.getAllCategories();
                     MyLinkedList<Movie> allMvs = movieController.getAllMovies();
