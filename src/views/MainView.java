@@ -1,19 +1,24 @@
 package views;
 
+import controllers.AuthController;
 import controllers.CategoryController;
 import controllers.HistoryController;
 import controllers.MovieController;
 import controllers.WatchlistController;
 import models.datastructures.MyLinkedList;
+import models.entities.Account;
 import models.entities.Category;
 import models.entities.Movie;
 import models.entities.WatchRecord;
 import utils.ValidationUtil;
+import data.FileHandler;
 
 import java.util.Scanner;
 
 public class MainView {
     private Scanner scanner;
+    private FileHandler fileHandler;
+    private AuthController authController;
     private CategoryController categoryController = new CategoryController();
     private MovieController movieController = new MovieController();
     private WatchlistController watchlistController = new WatchlistController();
@@ -21,64 +26,125 @@ public class MainView {
 
     public MainView() {
         this.scanner = new Scanner(System.in);
+        this.fileHandler = new FileHandler();
+        this.authController = new AuthController(fileHandler);
     }
 
     public void start() {
         boolean isRunning = true;
         while (isRunning) {
-            displayMainMenu();
-            int choice = getUserChoice();
+            System.out.println("\n=============================================");
+            System.out.println("          NETFLIX CLONE - AUTHENTICATION     ");
+            System.out.println("=============================================");
+            System.out.println("1. Login");
+            System.out.println("2. Register New User Account");
+            System.out.println("0. Save & Exit System");
+            System.out.println("=============================================");
+
+            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 2);
 
             switch (choice) {
                 case 1:
-                    manageCategoriesMenu();
+                    handleLogin();
                     break;
                 case 2:
-                    manageMoviesMenu();
-                    break;
-                case 3:
-                    searchAndSortMenu();
-                    break;
-                case 4:
-                    watchlistMenu();
-                    break;
-                case 5: 
-                    favoriteMoviesMenu(); 
-                    break;
-                case 6:
-                    historyAndStatsMenu();
-                    break;
-                case 7:
-                    displayTop10Ranking();
-                    break;
-                case 8:
-                    generateViewingReport();
+                    handleRegister();
                     break;
                 case 0:
-                    System.out.println("Saving data and exiting.");
+                    System.out.println("System shutting down. Goodbye!");
                     isRunning = false;
                     break;
-                default:
-                    System.out.println("Invalid choice. Please select a number between 0 and 7.");
             }
         }
     }
 
-    private void displayMainMenu() {
-        System.out.println("\n=============================================");
-        System.out.println("    NETFLIX-LIKE MOVIE STREAMING SYSTEM      ");
-        System.out.println("=============================================");
-        System.out.println("1. Manage Categories (Category CRUD)");
-        System.out.println("2. Manage Movies (Movie CRUD)");
-        System.out.println("3. Search & Sort Movies");
-        System.out.println("4. Watchlist (Playlist)");
-        System.out.println("5. Favorite Movies");
-        System.out.println("6. Viewing History & Statistics");
-        System.out.println("7. Best Movie Ranking (Top 10)");
-        System.out.println("8. Generate User Viewing Report");
-        System.out.println("0. Save & Exit");
-        System.out.println("=============================================");
-        System.out.print("Enter your choice: ");
+    private void handleLogin() {
+        System.out.println("\n--- LOGIN ---");
+        String user = ValidationUtil.getString(scanner, "Username: ");
+        String pass = ValidationUtil.getString(scanner, "Password: ");
+
+        Account acc = authController.login(user, pass);
+        if (acc == null) {
+            System.out.println("Error: Invalid username or password!");
+        } else {
+            System.out.println("Login successful! Welcome, " + acc.getName());
+            if (acc.getRole().equals("ADMIN")) {
+                adminSession();
+            } else {
+                userSession();
+            }
+        }
+    }
+
+    private void handleRegister() {
+        System.out.println("\n--- REGISTER NEW USER ---");
+        String user = ValidationUtil.getString(scanner, "Username: ");
+        
+        if (authController.isUsernameTaken(user)) {
+            System.out.println("Error: Username is already taken!");
+            return;
+        }
+
+        String name = ValidationUtil.getString(scanner, "Full Name: ");
+        String phone = ValidationUtil.getString(scanner, "Phone Number: ");
+        String email = ValidationUtil.getString(scanner, "Email Address: ");
+        String pass = ValidationUtil.getString(scanner, "Password: ");
+
+        if (authController.registerUser(user, name, phone, email, pass)) {
+            System.out.println("Registration successful! You can now login.");
+        } else {
+            System.out.println("Registration failed.");
+        }
+    }
+
+    private void adminSession() {
+        boolean adminActive = true;
+        while (adminActive) {
+            System.out.println("\n--- ADMIN CONTROL PANEL ---");
+            System.out.println("1. Manage Categories (CRUD)");
+            System.out.println("2. Manage Movies (CRUD)");
+            System.out.println("3. Generate Viewing Reports");
+            System.out.println("0. Logout");
+            
+            int choice = ValidationUtil.getInt(scanner, "Admin Choice: ", 0, 3);
+            
+            switch (choice) {
+                case 1: manageCategoriesMenu(); break;
+                case 2: manageMoviesMenu(); break;
+                case 3: generateViewingReport(); break;
+                case 0: 
+                    System.out.println("Logging out of Admin Panel...");
+                    adminActive = false; 
+                    break;
+            }
+        }
+    }
+
+    private void userSession() {
+        boolean userActive = true;
+        while (userActive) {
+            System.out.println("\n--- USER DASHBOARD ---");
+            System.out.println("1. Browse, Search & Sort Movies");
+            System.out.println("2. My Watchlist");
+            System.out.println("3. My Favorite Movies");
+            System.out.println("4. My Viewing History & Stats");
+            System.out.println("5. View Top 10 Best Movie Ranking");
+            System.out.println("0. Logout");
+            
+            int choice = ValidationUtil.getInt(scanner, "User Choice: ", 0, 5);
+            
+            switch (choice) {
+                case 1: searchAndSortMenu(); break;
+                case 2: watchlistMenu(); break;
+                case 3: favoriteMoviesMenu(); break;
+                case 4: historyAndStatsMenu(); break;
+                case 5: displayTop10Ranking(); break;
+                case 0: 
+                    System.out.println("Logging out of User Dashboard...");
+                    userActive = false; 
+                    break;
+            }
+        }
     }
 
     private int getUserChoice() {

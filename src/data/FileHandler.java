@@ -3,6 +3,7 @@ package data;
 import java.io.*;
 
 import models.datastructures.MyLinkedList;
+import models.entities.Account;
 import models.entities.Category;
 import models.entities.Movie;
 import models.entities.WatchRecord;
@@ -121,6 +122,36 @@ public class FileHandler {
         } catch (IOException e) {
             System.out.println("Error writing report file: " + e.getMessage());
             return false;
+        }
+    }
+
+    public MyLinkedList<Account> loadAccounts() {
+        MyLinkedList<Account> accounts = new MyLinkedList<>();
+        File file = new File(DIR_PATH + "/accounts.txt");
+        if (!file.exists()) return accounts;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split("\\|");
+                if (data.length == 6) {
+                    accounts.add(new Account(data[0], data[1], data[2], data[3], data[4], data[5]));
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading accounts: " + e.getMessage());
+        }
+        return accounts;
+    }
+
+    public void saveAccounts(MyLinkedList<Account> accounts) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(DIR_PATH + "/accounts.txt"))) {
+            for (int i = 0; i < accounts.size(); i++) {
+                writer.write(accounts.get(i).toString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving accounts: " + e.getMessage());
         }
     }
 }
