@@ -112,4 +112,15 @@ public class FileHandler {
             System.out.println("Lỗi ghi file History: " + e.getMessage());
         }
     }
+
+    public boolean exportReportToFile(String content) {
+        String reportPath = DIR_PATH + "/viewing_report.txt"; 
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(reportPath))) {
+            writer.write(content);
+            return true;
+        } catch (IOException e) {
+            System.out.println("Error writing report file: " + e.getMessage());
+            return false;
+        }
+    }
 }

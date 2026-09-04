@@ -1,0 +1,11 @@
+
+=======================================================
+                 USER VIEWING REPORT                   
+=======================================================
+- Total Movie Sessions    : 3
+- Total Watch Time        : 408 mins
+- Fully Completed Movies  : 3
+- Unfinished Movies       : 0
+- Movie Completion Rate   : 100.0%
+- Most Watched Category   : Action (1 plays)
+=======================================================

@@ -44,7 +44,6 @@ public class HistoryController {
         return null;
     }
 
-    // Lưu mới hoặc cộng dồn số phút (Continue Watching)
     public void saveOrUpdateRecord(String movieId, int minutesWatched) {
         WatchRecord existingRecord = getRecordByMovieId(movieId);
         long currentTime = System.currentTimeMillis();
@@ -57,5 +56,9 @@ public class HistoryController {
             history.add(newRecord);
         }
         fileHandler.saveHistory(history);
+    }
+
+    public boolean exportViewingReport(String reportContent) {
+        return fileHandler.exportReportToFile(reportContent);
     }
 }
