@@ -48,12 +48,18 @@ public class MainView {
                 case 6:
                     historyAndStatsMenu();
                     break;
+                case 7:
+                    displayTop10Ranking();
+                    break;
+                case 8:
+                    generateViewingReport();
+                    break;
                 case 0:
                     System.out.println("Saving data and exiting.");
                     isRunning = false;
                     break;
                 default:
-                    System.out.println("Invalid choice. Please select a number between 0 and 5.");
+                    System.out.println("Invalid choice. Please select a number between 0 and 7.");
             }
         }
     }
@@ -68,6 +74,8 @@ public class MainView {
         System.out.println("4. Watchlist (Playlist)");
         System.out.println("5. Favorite Movies");
         System.out.println("6. Viewing History & Statistics");
+        System.out.println("7. Best Movie Ranking (Top 10)");
+        System.out.println("8. Generate User Viewing Report");
         System.out.println("0. Save & Exit");
         System.out.println("=============================================");
         System.out.print("Enter your choice: ");
@@ -717,6 +725,116 @@ public class MainView {
                     back = true;
                     break;
             }
+        }
+    }
+
+    private void displayTop10Ranking() {
+        System.out.println("\n=======================================================");
+        System.out.println("             TOP 10 BEST MOVIE RANKING                 ");
+        System.out.println("=======================================================");
+        
+        MyLinkedList<Movie> originalMovies = movieController.getAllMovies();
+        if (originalMovies.isEmpty()) {
+            System.out.println("No movies available to rank.");
+            return;
+        }
+
+        MyLinkedList<Movie> tempSortList = new MyLinkedList<>();
+        for (int i = 0; i < originalMovies.size(); i++) {
+            tempSortList.add(originalMovies.get(i));
+        }
+
+        for (int i = 0; i < tempSortList.size() - 1; i++) {
+            for (int j = 0; j < tempSortList.size() - i - 1; j++) {
+                Movie m1 = tempSortList.get(j);
+                Movie m2 = tempSortList.get(j + 1);
+                
+                if (m1.getRankingScore() < m2.getRankingScore()) {
+                    tempSortList.set(j, m2);
+                    tempSortList.set(j + 1, m1);
+                }
+            }
+        }
+
+        int limit = Math.min(10, tempSortList.size());
+        for (int i = 0; i < limit; i++) {
+            Movie m = tempSortList.get(i);
+            System.out.printf("TOP %-2d | Score: %5.2f | %-20s (Rate: %.1f, Views: %d, Favs: %d)\n", 
+                (i + 1), m.getRankingScore(), m.getTitle(), m.getRating(), m.getViews(), m.getFavorites());
+        }
+        System.out.println("=======================================================");
+    }
+
+    private void generateViewingReport() {
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("\n=======================================================\n");
+        sb.append("                 USER VIEWING REPORT                   \n");
+        sb.append("=======================================================\n");
+        
+        MyLinkedList<WatchRecord> repHistory = historyController.getAllHistory();
+        
+        if (repHistory.isEmpty()) {
+            sb.append("Not enough data to generate report. Watch some movies!\n");
+            System.out.print(sb.toString());
+            return;
+        } 
+        
+        int repTotalTime = 0;
+        int repCompleted = 0;
+        int repUnfinished = 0;
+
+        MyLinkedList<Category> repCats = categoryController.getAllCategories();
+        int[] catWatchCount = new int[repCats.size()];
+
+        for (int i = 0; i < repHistory.size(); i++) {
+            WatchRecord r = repHistory.get(i);
+            repTotalTime += r.getWatchedMinutes();
+            
+            Movie m = movieController.findMovieById(r.getMovieId());
+            if (m != null) {
+                if (r.getWatchedMinutes() >= m.getDurationMinutes()) {
+                    repCompleted++;
+                } else {
+                    repUnfinished++;
+                }
+                
+                for (int j = 0; j < repCats.size(); j++) {
+                    if (repCats.get(j).getId().equalsIgnoreCase(m.getCategoryId())) {
+                        catWatchCount[j]++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        int maxCatIndex = -1;
+        int maxCatCount = 0;
+        for (int j = 0; j < repCats.size(); j++) {
+            if (catWatchCount[j] > maxCatCount) {
+                maxCatCount = catWatchCount[j];
+                maxCatIndex = j;
+            }
+        }
+
+        String favCategoryName = (maxCatIndex != -1) ? repCats.get(maxCatIndex).getName() : "N/A";
+        double completionRate = ((double) repCompleted / repHistory.size()) * 100;
+
+        sb.append(String.format("- Total Movie Sessions    : %d\n", repHistory.size()));
+        sb.append(String.format("- Total Watch Time        : %d mins\n", repTotalTime));
+        sb.append(String.format("- Fully Completed Movies  : %d\n", repCompleted));
+        sb.append(String.format("- Unfinished Movies       : %d\n", repUnfinished));
+        sb.append(String.format("- Movie Completion Rate   : %.1f%%\n", completionRate));
+        sb.append(String.format("- Most Watched Category   : %s (%d plays)\n", favCategoryName, maxCatCount));
+        sb.append("=======================================================\n");
+
+        String finalReport = sb.toString();
+        System.out.print(finalReport);
+
+        if (historyController.exportViewingReport(finalReport)) {
+            System.out.println("-> Success: Report exported to data/viewing_report.txt");
+        } else {
+            System.out.println("-> Failed to export report.");
         }
     }
 }
