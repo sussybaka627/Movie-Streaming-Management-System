@@ -306,28 +306,41 @@ public class MainView {
                     break;
                 case 2:
                     System.out.println("\n--- SORT MOVIES ---");
-                    System.out.println("1. By Rating (High to Low)");
-                    System.out.println("2. By Release Year (Newest to Oldest)");
+                    System.out.println("1. By Title (A to Z)");
+                    System.out.println("2. By Rating (High to Low)");
+                    System.out.println("3. By Release Year (Newest to Oldest)");
+                    System.out.println("4. By Popularity (Most Views)");
                     System.out.println("0. Cancel");
                     
-                    int sortChoice = ValidationUtil.getInt(scanner, "Choose sort criteria: ", 0, 2);
+                    int sortChoice = ValidationUtil.getInt(scanner, "Choose sort criteria: ", 0, 4);
                     
-                    if (sortChoice == 1) {
-                        movieController.sortMoviesByRating();
-                        System.out.println("\nMovies sorted by Rating successfully!");
-                    } else if (sortChoice == 2) {
-                        movieController.sortMoviesByYear();
-                        System.out.println("\nMovies sorted by Release Year successfully!");
-                    } else {
-                        break;
+                    switch (sortChoice) {
+                        case 1:
+                            movieController.sortMoviesByTitle();
+                            System.out.println("\nMovies sorted by Title successfully!");
+                            break;
+                        case 2:
+                            movieController.sortMoviesByRating();
+                            System.out.println("\nMovies sorted by Rating successfully!");
+                            break;
+                        case 3:
+                            movieController.sortMoviesByYear();
+                            System.out.println("\nMovies sorted by Release Year successfully!");
+                            break;
+                        case 4:
+                            movieController.sortMoviesByPopularity();
+                            System.out.println("\nMovies sorted by Popularity successfully!");
+                            break;
                     }
-
-                    System.out.println("\n--- Sorted Movie List ---");
-                    MyLinkedList<Movie> sortedList = movieController.getAllMovies();
-                    for (int i = 0; i < sortedList.size(); i++) {
-                        System.out.println(sortedList.get(i).toString());
+                    
+                    if (sortChoice != 0) {
+                        System.out.println("\n--- Sorted Movie List ---");
+                        MyLinkedList<Movie> sortedList = movieController.getAllMovies();
+                        for (int i = 0; i < sortedList.size(); i++) {
+                            System.out.println(sortedList.get(i).toString());
+                        }
+                        System.out.println("-------------------------");
                     }
-                    System.out.println("-------------------------");
                     break;
                 case 3:
                     System.out.println("\n--- Available Categories ---");
@@ -412,9 +425,7 @@ public class MainView {
 
                         if (historyController.getRecordByMovieId(watchedMovie.getId()) == null) {
                             watchedMovie.setViews(watchedMovie.getViews() + 1);
-                            movieController.updateMovie(watchedMovie.getId(), watchedMovie.getTitle(), 
-                                watchedMovie.getDirector(), watchedMovie.getActor(), watchedMovie.getCategoryId(), 
-                                watchedMovie.getRating(), watchedMovie.getReleaseYear(), watchedMovie.getDurationMinutes());
+                            movieController.saveAllMoviesData();
                         }
 
                         historyController.saveOrUpdateRecord(watchedMovie.getId(), minutesToWatch);
@@ -489,13 +500,15 @@ public class MainView {
         boolean back = false;
         while (!back) {
             System.out.println("\n--- HISTORY & STATISTICS ---");
-            System.out.println("1. View Watching History");
-            System.out.println("2. View My Statistics Dashboard");
-            System.out.println("3. Trending Movies (Most Viewed)");
-            System.out.println("4. Continue Watching");
+            System.out.println("1. View Watching History (Full Log)");
+            System.out.println("2. Recently Watched Movies (Top 3)");
+            System.out.println("3. View My Statistics Dashboard");
+            System.out.println("4. Trending Movies (Most Viewed)");
+            System.out.println("5. Continue Watching");
+            System.out.println("6. Trending Categories (Most Viewed)");
             System.out.println("0. Go back");
-            
-            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 4);
+
+            int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 6); 
 
             switch (choice) {
                 case 1:
@@ -503,7 +516,7 @@ public class MainView {
                     if (historyList.isEmpty()) {
                         System.out.println("You haven't watched any movies yet.");
                     } else {
-                        System.out.println("\n--- Your Watching History ---");
+                        System.out.println("\n--- Full Watching History ---");
                         for (int i = 0; i < historyList.size(); i++) {
                             WatchRecord record = historyList.get(i);
                             Movie m = movieController.findMovieById(record.getMovieId());
@@ -514,6 +527,39 @@ public class MainView {
                     break;
                     
                 case 2:
+                    MyLinkedList<WatchRecord> allHistoryForRecent = historyController.getAllHistory();
+                    if (allHistoryForRecent.isEmpty()) {
+                        System.out.println("You haven't watched any movies yet.");
+                    } else {
+                        System.out.println("\n--- Recently Watched (Quick Access) ---");
+
+                        MyLinkedList<WatchRecord> recentList = new MyLinkedList<>();
+                        for (int i = 0; i < allHistoryForRecent.size(); i++) {
+                            recentList.add(allHistoryForRecent.get(i));
+                        }
+
+                        for (int i = 0; i < recentList.size() - 1; i++) {
+                            for (int j = 0; j < recentList.size() - i - 1; j++) {
+                                WatchRecord r1 = recentList.get(j);
+                                WatchRecord r2 = recentList.get(j + 1);
+                                if (r1.getLastWatchTime() < r2.getLastWatchTime()) {
+                                    recentList.set(j, r2);
+                                    recentList.set(j + 1, r1);
+                                }
+                            }
+                        }
+
+                        int limit = Math.min(3, recentList.size());
+                        for (int i = 0; i < limit; i++) {
+                            WatchRecord record = recentList.get(i);
+                            Movie m = movieController.findMovieById(record.getMovieId());
+                            String title = (m != null) ? m.getTitle() : "Unknown Movie";
+                            System.out.printf("Recent %d: %s | Watched: %d mins\n", (i+1), title, record.getWatchedMinutes());
+                        }
+                    }
+                    break;
+                    
+                case 3:
                     System.out.println("\n=============================================");
                     System.out.println("             USER DASHBOARD STATS            ");
                     System.out.println("=============================================");
@@ -528,38 +574,45 @@ public class MainView {
                     System.out.println("=============================================");
                     break;
                     
-                case 3:
+                case 4:
                     System.out.println("\n--- Trending Movies (Top 3 Most Viewed) ---");
-                    MyLinkedList<Movie> allMovies = movieController.getAllMovies();
-
-                    for (int i = 0; i < allMovies.size() - 1; i++) {
-                        for (int j = 0; j < allMovies.size() - i - 1; j++) {
-                            Movie m1 = allMovies.get(j);
-                            Movie m2 = allMovies.get(j + 1);
+                    MyLinkedList<Movie> originalMovies = movieController.getAllMovies();
+                    MyLinkedList<Movie> tempSortList = new MyLinkedList<>();
+                    
+                    for (int i = 0; i < originalMovies.size(); i++) {
+                        tempSortList.add(originalMovies.get(i));
+                    }
+                    
+                    for (int i = 0; i < tempSortList.size() - 1; i++) {
+                        for (int j = 0; j < tempSortList.size() - i - 1; j++) {
+                            Movie m1 = tempSortList.get(j);
+                            Movie m2 = tempSortList.get(j + 1);
                             if (m1.getViews() < m2.getViews()) {
-                                allMovies.set(j, m2);
-                                allMovies.set(j + 1, m1);
+                                tempSortList.set(j, m2);
+                                tempSortList.set(j + 1, m1);
                             }
                         }
                     }
-
-                    int limit = Math.min(3, allMovies.size());
-                    for (int i = 0; i < limit; i++) {
-                        Movie m = allMovies.get(i);
+                    
+                    int movieLimit = Math.min(3, tempSortList.size());
+                    boolean hasTrendingMovie = false;
+                    for (int i = 0; i < movieLimit; i++) {
+                        Movie m = tempSortList.get(i);
                         if (m.getViews() > 0) {
                             System.out.printf("TOP %d: %s | %d Views\n", (i+1), m.getTitle(), m.getViews());
+                            hasTrendingMovie = true;
                         }
                     }
-                    if (limit == 0 || allMovies.get(0).getViews() == 0) {
+                    if (!hasTrendingMovie) {
                         System.out.println("No viewing data available yet to determine trends.");
                     }
                     break;
-                case 4:
+                    
+                case 5:
                     System.out.println("\n--- Continue Watching ---");
                     MyLinkedList<WatchRecord> allHistory = historyController.getAllHistory();
                     boolean hasUnfinished = false;
                     
-                    // Lọc ra các phim có số phút đã xem < tổng thời lượng
                     for (int i = 0; i < allHistory.size(); i++) {
                         WatchRecord record = allHistory.get(i);
                         Movie m = movieController.findMovieById(record.getMovieId());
@@ -595,6 +648,71 @@ public class MainView {
                         System.out.println("Error: Invalid ID or movie is already fully watched.");
                     }
                     break;
+
+                case 6:
+                    System.out.println("\n--- Trending Categories (Top 3) ---");
+                    MyLinkedList<Category> allCats = categoryController.getAllCategories();
+                    MyLinkedList<Movie> allMvs = movieController.getAllMovies();
+                    
+                    if (allCats.isEmpty()) {
+                        System.out.println("No categories available.");
+                        break;
+                    }
+
+                    MyLinkedList<Category> tempCats = new MyLinkedList<>();
+                    for (int i = 0; i < allCats.size(); i++) {
+                        tempCats.add(allCats.get(i));
+                    }
+
+                    for (int i = 0; i < tempCats.size() - 1; i++) {
+                        for (int j = 0; j < tempCats.size() - i - 1; j++) {
+                            Category c1 = tempCats.get(j);
+                            Category c2 = tempCats.get(j + 1);
+                            
+                            int views1 = 0;
+                            for(int k = 0; k < allMvs.size(); k++) {
+                                if(allMvs.get(k).getCategoryId().equalsIgnoreCase(c1.getId())) {
+                                    views1 += allMvs.get(k).getViews();
+                                }
+                            }
+                            
+                            int views2 = 0;
+                            for(int k = 0; k < allMvs.size(); k++) {
+                                if(allMvs.get(k).getCategoryId().equalsIgnoreCase(c2.getId())) {
+                                    views2 += allMvs.get(k).getViews();
+                                }
+                            }
+                            
+                            if (views1 < views2) {
+                                tempCats.set(j, c2);
+                                tempCats.set(j + 1, c1);
+                            }
+                        }
+                    }
+
+                    int catLimit = Math.min(3, tempCats.size());
+                    boolean hasTrendingCat = false;
+                    
+                    for (int i = 0; i < catLimit; i++) {
+                        Category c = tempCats.get(i);
+                        int totalViews = 0;
+                        for(int k = 0; k < allMvs.size(); k++) {
+                            if(allMvs.get(k).getCategoryId().equalsIgnoreCase(c.getId())) {
+                                totalViews += allMvs.get(k).getViews();
+                            }
+                        }
+                        
+                        if (totalViews > 0) {
+                            System.out.printf("TOP %d: %s (ID: %s) | Total Views: %d\n", (i+1), c.getName(), c.getId(), totalViews);
+                            hasTrendingCat = true;
+                        }
+                    }
+                    
+                    if (!hasTrendingCat) {
+                        System.out.println("No viewing data available yet to determine trending categories.");
+                    }
+                    break;
+
                 case 0:
                     back = true;
                     break;
