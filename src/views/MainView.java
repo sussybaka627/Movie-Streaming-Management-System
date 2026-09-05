@@ -181,28 +181,51 @@ public class MainView {
                     break;
                 case 2:
                     String id = ValidationUtil.getString(scanner, "Enter Category ID (e.g., C01): ");
+                    if (categoryController.findCategoryById(id) != null) {
+                    System.out.println("Error: Category ID already exists.");
+                    break;
+                    }
                     String name = ValidationUtil.getString(scanner, "Enter Category Name: ");
+                    if (categoryController.isNameTaken(name)) {
+                        System.out.println("Error: Category Name '" + name + "' already exists.");
+                        break;
+                    }
                     if (categoryController.addCategory(id, name)) {
                         System.out.println("Category added successfully!");
                     } else {
-                        System.out.println("Error: Category ID already exists.");
+                        System.out.println("Error: Failed to add category.");
                     }
                     break;
                 case 3:
                     String updateId = ValidationUtil.getString(scanner, "Enter Category ID to update: ");
+                    Category currentCat = categoryController.findCategoryById(updateId);
+                    
+                    if (currentCat == null) {
+                        System.out.println("Error: Category not found.");
+                        break;
+                    }
                     String newName = ValidationUtil.getString(scanner, "Enter new Category Name: ");
+                    if (!currentCat.getName().equalsIgnoreCase(newName.trim()) && categoryController.isNameTaken(newName)) {
+                        System.out.println("Error: Category Name '" + newName + "' already exists.");
+                        break;
+                    }
                     if (categoryController.updateCategory(updateId, newName)) {
                         System.out.println("Category updated successfully!");
-                    } else {
-                        System.out.println("Error: Category not found.");
                     }
                     break;
                 case 4:
                     String deleteId = ValidationUtil.getString(scanner, "Enter Category ID to delete: ");
+                    if (categoryController.findCategoryById(deleteId) == null) {
+                        System.out.println("Error: Category not found.");
+                        break;
+                    }
+                    MyLinkedList<Movie> linkedMovies = movieController.getMoviesByCategory(deleteId);
+                    if (!linkedMovies.isEmpty()) {
+                        System.out.println("Error: Cannot delete this category. " + linkedMovies.size() + " movie(s) are using it.");
+                        break;
+                    }
                     if (categoryController.deleteCategory(deleteId)) {
                         System.out.println("Category deleted successfully!");
-                    } else {
-                        System.out.println("Error: Category not found.");
                     }
                     break;
                 case 0:

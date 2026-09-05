@@ -24,6 +24,7 @@ public class CategoryController {
         if (findCategoryById(id) != null) {
             return false; 
         }
+
         Category newCategory = new Category(id, name);
         categories.add(newCategory);
         fileHandler.saveCategories(categories);
@@ -59,4 +60,13 @@ public class CategoryController {
         }
         return null;
     }
+
+    public boolean isNameTaken(String name) {
+    for (int i = 0; i < categories.size(); i++) {
+        if (categories.get(i).getName().equalsIgnoreCase(name.trim())) {
+            return true;
+        }
+    }
+    return false;
+}
 }

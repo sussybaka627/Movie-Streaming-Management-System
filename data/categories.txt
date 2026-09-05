@@ -1,3 +1,4 @@
 C01|Action
 C02|Comedy
 C03|Sci-Fi
+C04|Anime
