@@ -197,19 +197,22 @@ public class MainView {
                     }
                     break;
                 case 3:
-                    String updateId = ValidationUtil.getString(scanner, "Enter Category ID to update: ");
-                    Category currentCat = categoryController.findCategoryById(updateId);
+                    String updateCatId = ValidationUtil.getString(scanner, "Enter Category ID to update: ");
+                    Category currentCat = categoryController.findCategoryById(updateCatId);
                     
                     if (currentCat == null) {
                         System.out.println("Error: Category not found.");
                         break;
                     }
-                    String newName = ValidationUtil.getString(scanner, "Enter new Category Name: ");
+                    
+                    String newName = ValidationUtil.getStringForUpdate(scanner, "Enter new Category Name", currentCat.getName());
+                    
                     if (!currentCat.getName().equalsIgnoreCase(newName.trim()) && categoryController.isNameTaken(newName)) {
                         System.out.println("Error: Category Name '" + newName + "' already exists.");
                         break;
                     }
-                    if (categoryController.updateCategory(updateId, newName)) {
+                    
+                    if (categoryController.updateCategory(updateCatId, newName)) {
                         System.out.println("Category updated successfully!");
                     }
                     break;
@@ -285,6 +288,10 @@ public class MainView {
                     }
                     
                     String categoryId = ValidationUtil.getString(scanner, "Enter Category ID: ");
+                    if (categoryController.findCategoryById(categoryId) == null) {
+                        System.out.println("Error: Category ID does not exist.");
+                        break;
+                }
                     double rating = ValidationUtil.getDouble(scanner, "Enter Rating (0.0 - 10.0): ", 0.0, 10.0);
                     int year = ValidationUtil.getInt(scanner, "Enter Release Year (1900 - 2026): ", 1900, 2026);
                     int duration = ValidationUtil.getInt(scanner, "Enter Duration in minutes (1 - 500): ", 1, 500);
@@ -307,13 +314,23 @@ public class MainView {
                     }
                     
                     System.out.println("Updating Movie: " + existingMovie.getTitle());
-                    String newTitle = ValidationUtil.getString(scanner, "Enter new Title: ");
-                    String newDirector = ValidationUtil.getString(scanner, "Enter new Director: ");
-                    String newActor = ValidationUtil.getString(scanner, "Enter new Main Actor: ");
-                    String newCatId = ValidationUtil.getString(scanner, "Enter new Category ID: ");
-                    double newRating = ValidationUtil.getDouble(scanner, "Enter new Rating (0.0 - 10.0): ", 0.0, 10.0);
-                    int newYear = ValidationUtil.getInt(scanner, "Enter new Release Year (1900 - 2026): ", 1900, 2026);
-                    int newDuration = ValidationUtil.getInt(scanner, "Enter new Duration in minutes (1 - 500): ", 1, 500);
+                    
+                    String newTitle = ValidationUtil.getStringForUpdate(scanner, "Enter new Title", existingMovie.getTitle());
+                    String newDirector = ValidationUtil.getStringForUpdate(scanner, "Enter new Director", existingMovie.getDirector());
+                    String newActor = ValidationUtil.getStringForUpdate(scanner, "Enter new Main Actor", existingMovie.getActor());
+                    
+                    String newCatId;
+                    while (true) {
+                        newCatId = ValidationUtil.getStringForUpdate(scanner, "Enter new Category ID", existingMovie.getCategoryId());
+                        if (categoryController.findCategoryById(newCatId) != null) {
+                            break;
+                        }
+                        System.out.println("Error: Category ID does not exist.");
+                    }
+
+                    double newRating = ValidationUtil.getDoubleForUpdate(scanner, "Enter new Rating (0.0 - 10.0)", existingMovie.getRating(), 0.0, 10.0);
+                    int newYear = ValidationUtil.getIntForUpdate(scanner, "Enter new Release Year (1900 - 2026)", existingMovie.getReleaseYear(), 1900, 2026);
+                    int newDuration = ValidationUtil.getIntForUpdate(scanner, "Enter new Duration in minutes (1 - 500)", existingMovie.getDurationMinutes(), 1, 500);
 
                     if (movieController.updateMovie(updateId, newTitle, newDirector, newActor, newCatId, newRating, newYear, newDuration)) {
                         System.out.println("Movie updated successfully!");
