@@ -1,0 +1,2 @@
+admin|System Administrator|0999999999|admin@netflix.com|admin123|ADMIN
+hoanglk|Le Kha Hoang|0372804233|lekhahoang5@gmail.com|ho26072007|USER
