@@ -171,18 +171,16 @@ public class MainView {
                     }
                     break;
                 case 2:
-                    String id = ValidationUtil.getString(scanner, "Enter Category ID (e.g., C01): ");
-                    if (categoryController.findCategoryById(id) != null) {
-                    System.out.println("Error: Category ID already exists.");
-                    break;
-                    }
                     String name = ValidationUtil.getString(scanner, "Enter Category Name: ");
                     if (categoryController.isNameTaken(name)) {
                         System.out.println("Error: Category Name '" + name + "' already exists.");
                         break;
                     }
+
+                    String id = categoryController.generateNextCategoryId();
+
                     if (categoryController.addCategory(id, name)) {
-                        System.out.println("Category added successfully!");
+                        System.out.println("Category added successfully with ID: " + id);
                     } else {
                         System.out.println("Error: Failed to add category.");
                     }
@@ -256,12 +254,7 @@ public class MainView {
 
                 case 2:
                     System.out.println("\n[ Add New Movie ]");
-                    String id = ValidationUtil.getString(scanner, "Enter Movie ID (e.g., M01): ");
-                    
-                    if (movieController.findMovieById(id) != null) {
-                        System.out.println("Error: Movie ID already exists.");
-                        break;
-                    }
+                    String id = movieController.generateNextMovieId();
 
                     String title = ValidationUtil.getString(scanner, "Enter Title: ");
                     String director = ValidationUtil.getString(scanner, "Enter Director: ");
@@ -288,7 +281,7 @@ public class MainView {
                     int duration = ValidationUtil.getInt(scanner, "Enter Duration in minutes (1 - 500): ", 1, 500);
 
                     if (movieController.addMovie(id, title, director, actor, categoryId, rating, year, duration)) {
-                        System.out.println("Movie added successfully!");
+                        System.out.println("Movie added successfully with ID: " + id);
                     } else {
                         System.out.println("Failed to add movie.");
                     }
