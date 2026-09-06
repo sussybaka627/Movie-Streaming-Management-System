@@ -193,4 +193,22 @@ public class MovieController {
         }
         fileHandler.saveMovies(movies);
     }
+
+    public String generateNextMovieId() {
+    if (movies.isEmpty()) return "M01";
+    int maxId = 0;
+    for (int i = 0; i < movies.size(); i++) {
+        String idStr = movies.get(i).getId();
+        if (idStr.toUpperCase().startsWith("M")) {
+            try {
+                int num = Integer.parseInt(idStr.substring(1));
+                if (num > maxId) {
+                    maxId = num;
+                }
+            } catch (NumberFormatException e) {
+            }
+        }
+    }
+    return String.format("M%02d", maxId + 1);
+    }
 }

@@ -24,6 +24,7 @@ public class CategoryController {
         if (findCategoryById(id) != null) {
             return false; 
         }
+
         Category newCategory = new Category(id, name);
         categories.add(newCategory);
         fileHandler.saveCategories(categories);
@@ -58,5 +59,32 @@ public class CategoryController {
             }
         }
         return null;
+    }
+
+    public boolean isNameTaken(String name) {
+    for (int i = 0; i < categories.size(); i++) {
+        if (categories.get(i).getName().equalsIgnoreCase(name.trim())) {
+            return true;
+        }
+    }
+    return false;
+    }
+
+    public String generateNextCategoryId() {
+    if (categories.isEmpty()) return "C01";
+    int maxId = 0;
+    for (int i = 0; i < categories.size(); i++) {
+        String idStr = categories.get(i).getId();
+        if (idStr.toUpperCase().startsWith("C")) {
+            try {
+                int num = Integer.parseInt(idStr.substring(1));
+                if (num > maxId) {
+                    maxId = num;
+                }
+            } catch (NumberFormatException e) {
+            }
+        }
+    }
+    return String.format("C%02d", maxId + 1);
     }
 }

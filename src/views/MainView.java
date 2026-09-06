@@ -147,15 +147,6 @@ public class MainView {
         }
     }
 
-    private int getUserChoice() {
-        try {
-            int choice = Integer.parseInt(scanner.nextLine());
-            return choice;
-        } catch (NumberFormatException e) {
-            return -1; 
-        }
-    }
-
     private void manageCategoriesMenu() {
         boolean back = false;
         while (!back) {
@@ -180,29 +171,53 @@ public class MainView {
                     }
                     break;
                 case 2:
-                    String id = ValidationUtil.getString(scanner, "Enter Category ID (e.g., C01): ");
                     String name = ValidationUtil.getString(scanner, "Enter Category Name: ");
+                    if (categoryController.isNameTaken(name)) {
+                        System.out.println("Error: Category Name '" + name + "' already exists.");
+                        break;
+                    }
+
+                    String id = categoryController.generateNextCategoryId();
+
                     if (categoryController.addCategory(id, name)) {
-                        System.out.println("Category added successfully!");
+                        System.out.println("Category added successfully with ID: " + id);
                     } else {
-                        System.out.println("Error: Category ID already exists.");
+                        System.out.println("Error: Failed to add category.");
                     }
                     break;
                 case 3:
-                    String updateId = ValidationUtil.getString(scanner, "Enter Category ID to update: ");
-                    String newName = ValidationUtil.getString(scanner, "Enter new Category Name: ");
-                    if (categoryController.updateCategory(updateId, newName)) {
-                        System.out.println("Category updated successfully!");
-                    } else {
+                    String updateCatId = ValidationUtil.getString(scanner, "Enter Category ID to update: ");
+                    Category currentCat = categoryController.findCategoryById(updateCatId);
+                    
+                    if (currentCat == null) {
                         System.out.println("Error: Category not found.");
+                        break;
+                    }
+                    
+                    String newName = ValidationUtil.getStringForUpdate(scanner, "Enter new Category Name", currentCat.getName());
+                    
+                    if (!currentCat.getName().equalsIgnoreCase(newName.trim()) && categoryController.isNameTaken(newName)) {
+                        System.out.println("Error: Category Name '" + newName + "' already exists.");
+                        break;
+                    }
+                    
+                    if (categoryController.updateCategory(updateCatId, newName)) {
+                        System.out.println("Category updated successfully!");
                     }
                     break;
                 case 4:
                     String deleteId = ValidationUtil.getString(scanner, "Enter Category ID to delete: ");
+                    if (categoryController.findCategoryById(deleteId) == null) {
+                        System.out.println("Error: Category not found.");
+                        break;
+                    }
+                    MyLinkedList<Movie> linkedMovies = movieController.getMoviesByCategory(deleteId);
+                    if (!linkedMovies.isEmpty()) {
+                        System.out.println("Error: Cannot delete this category. " + linkedMovies.size() + " movie(s) are using it.");
+                        break;
+                    }
                     if (categoryController.deleteCategory(deleteId)) {
                         System.out.println("Category deleted successfully!");
-                    } else {
-                        System.out.println("Error: Category not found.");
                     }
                     break;
                 case 0:
@@ -239,12 +254,7 @@ public class MainView {
 
                 case 2:
                     System.out.println("\n[ Add New Movie ]");
-                    String id = ValidationUtil.getString(scanner, "Enter Movie ID (e.g., M01): ");
-                    
-                    if (movieController.findMovieById(id) != null) {
-                        System.out.println("Error: Movie ID already exists.");
-                        break;
-                    }
+                    String id = movieController.generateNextMovieId();
 
                     String title = ValidationUtil.getString(scanner, "Enter Title: ");
                     String director = ValidationUtil.getString(scanner, "Enter Director: ");
@@ -262,12 +272,16 @@ public class MainView {
                     }
                     
                     String categoryId = ValidationUtil.getString(scanner, "Enter Category ID: ");
+                    if (categoryController.findCategoryById(categoryId) == null) {
+                        System.out.println("Error: Category ID does not exist.");
+                        break;
+                }
                     double rating = ValidationUtil.getDouble(scanner, "Enter Rating (0.0 - 10.0): ", 0.0, 10.0);
                     int year = ValidationUtil.getInt(scanner, "Enter Release Year (1900 - 2026): ", 1900, 2026);
                     int duration = ValidationUtil.getInt(scanner, "Enter Duration in minutes (1 - 500): ", 1, 500);
 
                     if (movieController.addMovie(id, title, director, actor, categoryId, rating, year, duration)) {
-                        System.out.println("Movie added successfully!");
+                        System.out.println("Movie added successfully with ID: " + id);
                     } else {
                         System.out.println("Failed to add movie.");
                     }
@@ -284,13 +298,23 @@ public class MainView {
                     }
                     
                     System.out.println("Updating Movie: " + existingMovie.getTitle());
-                    String newTitle = ValidationUtil.getString(scanner, "Enter new Title: ");
-                    String newDirector = ValidationUtil.getString(scanner, "Enter new Director: ");
-                    String newActor = ValidationUtil.getString(scanner, "Enter new Main Actor: ");
-                    String newCatId = ValidationUtil.getString(scanner, "Enter new Category ID: ");
-                    double newRating = ValidationUtil.getDouble(scanner, "Enter new Rating (0.0 - 10.0): ", 0.0, 10.0);
-                    int newYear = ValidationUtil.getInt(scanner, "Enter new Release Year (1900 - 2026): ", 1900, 2026);
-                    int newDuration = ValidationUtil.getInt(scanner, "Enter new Duration in minutes (1 - 500): ", 1, 500);
+                    
+                    String newTitle = ValidationUtil.getStringForUpdate(scanner, "Enter new Title", existingMovie.getTitle());
+                    String newDirector = ValidationUtil.getStringForUpdate(scanner, "Enter new Director", existingMovie.getDirector());
+                    String newActor = ValidationUtil.getStringForUpdate(scanner, "Enter new Main Actor", existingMovie.getActor());
+                    
+                    String newCatId;
+                    while (true) {
+                        newCatId = ValidationUtil.getStringForUpdate(scanner, "Enter new Category ID", existingMovie.getCategoryId());
+                        if (categoryController.findCategoryById(newCatId) != null) {
+                            break;
+                        }
+                        System.out.println("Error: Category ID does not exist.");
+                    }
+
+                    double newRating = ValidationUtil.getDoubleForUpdate(scanner, "Enter new Rating (0.0 - 10.0)", existingMovie.getRating(), 0.0, 10.0);
+                    int newYear = ValidationUtil.getIntForUpdate(scanner, "Enter new Release Year (1900 - 2026)", existingMovie.getReleaseYear(), 1900, 2026);
+                    int newDuration = ValidationUtil.getIntForUpdate(scanner, "Enter new Duration in minutes (1 - 500)", existingMovie.getDurationMinutes(), 1, 500);
 
                     if (movieController.updateMovie(updateId, newTitle, newDirector, newActor, newCatId, newRating, newYear, newDuration)) {
                         System.out.println("Movie updated successfully!");
@@ -497,12 +521,12 @@ public class MainView {
                             "How many minutes will you watch now? (1 - " + watchedMovie.getDurationMinutes() + "): ", 
                             1, watchedMovie.getDurationMinutes());
 
-                        if (historyController.getRecordByMovieId(watchedMovie.getId()) == null) {
+                        if (historyController.getRecordByUserAndMovie(authController.getCurrentUser().getUsername(), watchedMovie.getId()) == null) {
                             watchedMovie.setViews(watchedMovie.getViews() + 1);
                             movieController.saveAllMoviesData();
                         }
 
-                        historyController.saveOrUpdateRecord(watchedMovie.getId(), minutesToWatch);
+                        historyController.saveOrUpdateRecord(authController.getCurrentUser().getUsername(), watchedMovie.getId(), minutesToWatch);
                         System.out.println("Watched " + minutesToWatch + " minutes. Progress saved!");
                             
                     } else {
@@ -638,7 +662,7 @@ public class MainView {
                     System.out.println("             USER DASHBOARD STATS            ");
                     System.out.println("=============================================");
                     
-                    int totalMinutes = historyController.getTotalWatchTime();
+                    int totalMinutes = historyController.getTotalWatchTime(authController.getCurrentUser().getUsername());
                     int totalMoviesWatched = historyController.getAllHistory().size();
                     int favCount = movieController.getFavoriteMovies().size();
                     
@@ -706,7 +730,7 @@ public class MainView {
                     String continueId = ValidationUtil.getString(scanner, "\nEnter Movie ID to continue watching (or type '0' to cancel): ");
                     if (continueId.equals("0")) break;
                     
-                    WatchRecord currentRecord = historyController.getRecordByMovieId(continueId);
+                    WatchRecord currentRecord = historyController.getRecordByUserAndMovie(authController.getCurrentUser().getUsername(), continueId);
                     Movie continueMovie = movieController.findMovieById(continueId);
                     
                     if (currentRecord != null && continueMovie != null && currentRecord.getWatchedMinutes() < continueMovie.getDurationMinutes()) {
@@ -716,7 +740,7 @@ public class MainView {
                         
                         int addMins = ValidationUtil.getInt(scanner, "How many minutes do you want to watch now? (1 - " + remaining + "): ", 1, remaining);
                         
-                        historyController.saveOrUpdateRecord(continueId, addMins);
+                        historyController.saveOrUpdateRecord(authController.getCurrentUser().getUsername(), continueId, addMins);
                         System.out.println("Watched " + addMins + " more minutes. Welcome back!");
                     } else {
                         System.out.println("Error: Invalid ID or movie is already fully watched.");
@@ -832,19 +856,24 @@ public class MainView {
     }
 
     private void generateViewingReport() {
-        StringBuilder sb = new StringBuilder();
+        String targetUser = ValidationUtil.getString(scanner, "Enter Username to generate report (or 'all' for system-wide): ");
         
-        sb.append("\n=======================================================\n");
-        sb.append("                 USER VIEWING REPORT                   \n");
-        sb.append("=======================================================\n");
-        
-        MyLinkedList<WatchRecord> repHistory = historyController.getAllHistory();
-        
+        MyLinkedList<WatchRecord> repHistory;
+        if (targetUser.equalsIgnoreCase("all")) {
+            repHistory = historyController.getAllHistory();
+        } else {
+            repHistory = historyController.getHistoryByUser(targetUser);
+        }
+
         if (repHistory.isEmpty()) {
-            sb.append("Not enough data to generate report. Watch some movies!\n");
-            System.out.print(sb.toString());
+            System.out.println("No viewing data found for user: " + targetUser);
             return;
         } 
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n=======================================================\n");
+        sb.append("      VIEWING REPORT FOR: " + targetUser.toUpperCase() + "      \n");
+        sb.append("=======================================================\n");
         
         int repTotalTime = 0;
         int repCompleted = 0;

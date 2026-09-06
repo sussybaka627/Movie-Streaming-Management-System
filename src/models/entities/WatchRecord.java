@@ -1,20 +1,30 @@
 package models.entities;
 
 public class WatchRecord {
+    private String username;
     private String movieId;
     private int watchedMinutes;
     private long lastWatchTime;
 
     public WatchRecord() {}
 
-    public WatchRecord(String movieId, int watchedMinutes, long lastWatchTime) {
+    public WatchRecord(String username, String movieId, int watchedMinutes, long lastWatchTime) {
+        this.username = username;
         this.movieId = movieId;
         this.watchedMinutes = watchedMinutes;
         this.lastWatchTime = lastWatchTime;
     }
 
     public String toDataString() {
-        return movieId + "|" + watchedMinutes + "|" + lastWatchTime;
+        return username + "|" + movieId + "|" + watchedMinutes + "|" + lastWatchTime;
+    }
+
+    public String getUsername() { 
+        return username; 
+    }
+    
+    public void setUsername(String username) { 
+        this.username = username; 
     }
 
     public String getMovieId() { 

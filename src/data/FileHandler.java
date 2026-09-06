@@ -92,9 +92,9 @@ public class FileHandler {
             while ((line = reader.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
                 String[] parts = line.split("\\|");
-                if (parts.length == 3) {
+                if (parts.length == 4) {
                     try {
-                        history.add(new WatchRecord(parts[0], Integer.parseInt(parts[1]), Long.parseLong(parts[2])));
+                        history.add(new WatchRecord(parts[0], parts[1], Integer.parseInt(parts[2]), Long.parseLong(parts[3])));
                     } catch (NumberFormatException ex) {}
                 }
             }
