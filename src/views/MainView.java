@@ -610,7 +610,7 @@ public class MainView {
 
             switch (choice) {
                 case 1:
-                    MyLinkedList<WatchRecord> historyList = historyController.getAllHistory();
+                    MyLinkedList<WatchRecord> historyList = historyController.getHistoryByUser(authController.getCurrentUser().getUsername());
                     if (historyList.isEmpty()) {
                         System.out.println("You haven't watched any movies yet.");
                     } else {
@@ -625,7 +625,7 @@ public class MainView {
                     break;
                     
                 case 2:
-                    MyLinkedList<WatchRecord> allHistoryForRecent = historyController.getAllHistory();
+                    MyLinkedList<WatchRecord> allHistoryForRecent = historyController.getHistoryByUser(authController.getCurrentUser().getUsername());
                     if (allHistoryForRecent.isEmpty()) {
                         System.out.println("You haven't watched any movies yet.");
                     } else {
@@ -663,7 +663,7 @@ public class MainView {
                     System.out.println("=============================================");
                     
                     int totalMinutes = historyController.getTotalWatchTime(authController.getCurrentUser().getUsername());
-                    int totalMoviesWatched = historyController.getAllHistory().size();
+                    int totalMoviesWatched = historyController.getHistoryByUser(authController.getCurrentUser().getUsername()).size();
                     int favCount = movieController.getFavoriteMovies().size();
                     
                     System.out.println("Total Movies Watched : " + totalMoviesWatched);
@@ -708,7 +708,7 @@ public class MainView {
                     
                 case 5:
                     System.out.println("\n--- Continue Watching ---");
-                    MyLinkedList<WatchRecord> allHistory = historyController.getAllHistory();
+                    MyLinkedList<WatchRecord> allHistory = historyController.getHistoryByUser(authController.getCurrentUser().getUsername());
                     boolean hasUnfinished = false;
                     
                     for (int i = 0; i < allHistory.size(); i++) {
