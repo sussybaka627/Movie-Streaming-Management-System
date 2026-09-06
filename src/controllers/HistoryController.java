@@ -20,45 +20,50 @@ public class HistoryController {
         return history;
     }
 
-    public void addWatchRecord(String movieId, int watchedMinutes) {
-        long currentTime = System.currentTimeMillis();
-        WatchRecord record = new WatchRecord(movieId, watchedMinutes, currentTime);
-        history.add(record);
-        fileHandler.saveHistory(history);
-    }
-
-    public int getTotalWatchTime() {
+    public int getTotalWatchTime(String username) {
         int totalMinutes = 0;
         for (int i = 0; i < history.size(); i++) {
-            totalMinutes += history.get(i).getWatchedMinutes();
+            if (history.get(i).getUsername().equals(username)) {
+                totalMinutes += history.get(i).getWatchedMinutes();
+            }
         }
         return totalMinutes;
     }
 
-    public WatchRecord getRecordByMovieId(String movieId) {
+    public boolean exportViewingReport(String reportContent) {
+        return fileHandler.exportReportToFile(reportContent);
+    }
+
+    public MyLinkedList<WatchRecord> getHistoryByUser(String username) {
+        MyLinkedList<WatchRecord> userHistory = new MyLinkedList<>();
         for (int i = 0; i < history.size(); i++) {
-            if (history.get(i).getMovieId().equalsIgnoreCase(movieId)) {
-                return history.get(i);
+            if (history.get(i).getUsername().equals(username)) {
+                userHistory.add(history.get(i));
+            }
+        }
+        return userHistory;
+    }
+
+    public WatchRecord getRecordByUserAndMovie(String username, String movieId) {
+        for (int i = 0; i < history.size(); i++) {
+            WatchRecord r = history.get(i);
+            if (r.getUsername().equals(username) && r.getMovieId().equalsIgnoreCase(movieId)) {
+                return r;
             }
         }
         return null;
     }
 
-    public void saveOrUpdateRecord(String movieId, int minutesWatched) {
-        WatchRecord existingRecord = getRecordByMovieId(movieId);
+    public void saveOrUpdateRecord(String username, String movieId, int minutesWatched) {
+        WatchRecord existingRecord = getRecordByUserAndMovie(username, movieId);
         long currentTime = System.currentTimeMillis();
 
         if (existingRecord != null) {
             existingRecord.setWatchedMinutes(existingRecord.getWatchedMinutes() + minutesWatched);
             existingRecord.setLastWatchTime(currentTime);
         } else {
-            WatchRecord newRecord = new WatchRecord(movieId, minutesWatched, currentTime);
-            history.add(newRecord);
+            history.add(new WatchRecord(username, movieId, minutesWatched, currentTime));
         }
         fileHandler.saveHistory(history);
-    }
-
-    public boolean exportViewingReport(String reportContent) {
-        return fileHandler.exportReportToFile(reportContent);
     }
 }

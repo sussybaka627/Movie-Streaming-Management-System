@@ -147,15 +147,6 @@ public class MainView {
         }
     }
 
-    private int getUserChoice() {
-        try {
-            int choice = Integer.parseInt(scanner.nextLine());
-            return choice;
-        } catch (NumberFormatException e) {
-            return -1; 
-        }
-    }
-
     private void manageCategoriesMenu() {
         boolean back = false;
         while (!back) {
@@ -537,12 +528,12 @@ public class MainView {
                             "How many minutes will you watch now? (1 - " + watchedMovie.getDurationMinutes() + "): ", 
                             1, watchedMovie.getDurationMinutes());
 
-                        if (historyController.getRecordByMovieId(watchedMovie.getId()) == null) {
+                        if (historyController.getRecordByUserAndMovie(authController.getCurrentUser().getUsername(), watchedMovie.getId()) == null) {
                             watchedMovie.setViews(watchedMovie.getViews() + 1);
                             movieController.saveAllMoviesData();
                         }
 
-                        historyController.saveOrUpdateRecord(watchedMovie.getId(), minutesToWatch);
+                        historyController.saveOrUpdateRecord(authController.getCurrentUser().getUsername(), watchedMovie.getId(), minutesToWatch);
                         System.out.println("Watched " + minutesToWatch + " minutes. Progress saved!");
                             
                     } else {
@@ -678,7 +669,7 @@ public class MainView {
                     System.out.println("             USER DASHBOARD STATS            ");
                     System.out.println("=============================================");
                     
-                    int totalMinutes = historyController.getTotalWatchTime();
+                    int totalMinutes = historyController.getTotalWatchTime(authController.getCurrentUser().getUsername());
                     int totalMoviesWatched = historyController.getAllHistory().size();
                     int favCount = movieController.getFavoriteMovies().size();
                     
@@ -746,7 +737,7 @@ public class MainView {
                     String continueId = ValidationUtil.getString(scanner, "\nEnter Movie ID to continue watching (or type '0' to cancel): ");
                     if (continueId.equals("0")) break;
                     
-                    WatchRecord currentRecord = historyController.getRecordByMovieId(continueId);
+                    WatchRecord currentRecord = historyController.getRecordByUserAndMovie(authController.getCurrentUser().getUsername(), continueId);
                     Movie continueMovie = movieController.findMovieById(continueId);
                     
                     if (currentRecord != null && continueMovie != null && currentRecord.getWatchedMinutes() < continueMovie.getDurationMinutes()) {
@@ -756,7 +747,7 @@ public class MainView {
                         
                         int addMins = ValidationUtil.getInt(scanner, "How many minutes do you want to watch now? (1 - " + remaining + "): ", 1, remaining);
                         
-                        historyController.saveOrUpdateRecord(continueId, addMins);
+                        historyController.saveOrUpdateRecord(authController.getCurrentUser().getUsername(), continueId, addMins);
                         System.out.println("Watched " + addMins + " more minutes. Welcome back!");
                     } else {
                         System.out.println("Error: Invalid ID or movie is already fully watched.");
@@ -872,19 +863,24 @@ public class MainView {
     }
 
     private void generateViewingReport() {
-        StringBuilder sb = new StringBuilder();
+        String targetUser = ValidationUtil.getString(scanner, "Enter Username to generate report (or 'all' for system-wide): ");
         
-        sb.append("\n=======================================================\n");
-        sb.append("                 USER VIEWING REPORT                   \n");
-        sb.append("=======================================================\n");
-        
-        MyLinkedList<WatchRecord> repHistory = historyController.getAllHistory();
-        
+        MyLinkedList<WatchRecord> repHistory;
+        if (targetUser.equalsIgnoreCase("all")) {
+            repHistory = historyController.getAllHistory();
+        } else {
+            repHistory = historyController.getHistoryByUser(targetUser);
+        }
+
         if (repHistory.isEmpty()) {
-            sb.append("Not enough data to generate report. Watch some movies!\n");
-            System.out.print(sb.toString());
+            System.out.println("No viewing data found for user: " + targetUser);
             return;
         } 
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n=======================================================\n");
+        sb.append("      VIEWING REPORT FOR: " + targetUser.toUpperCase() + "      \n");
+        sb.append("=======================================================\n");
         
         int repTotalTime = 0;
         int repCompleted = 0;
