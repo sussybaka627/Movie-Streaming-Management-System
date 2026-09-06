@@ -19,9 +19,9 @@ public class MainView {
     private Scanner scanner;
     private FileHandler fileHandler;
     private AuthController authController;
+    private WatchlistController watchlistController;
     private CategoryController categoryController = new CategoryController();
     private MovieController movieController = new MovieController();
-    private WatchlistController watchlistController = new WatchlistController();
     private HistoryController historyController = new HistoryController();
 
     public MainView() {
@@ -71,6 +71,7 @@ public class MainView {
             if (acc.getRole().equals("ADMIN")) {
                 adminSession();
             } else {
+                this.watchlistController = new WatchlistController(acc.getUsername(), fileHandler, movieController);
                 userSession();
             }
         }
@@ -505,8 +506,11 @@ public class MainView {
                     Movie movie = movieController.findMovieById(movieId);
                     
                     if (movie != null) {
-                        watchlistController.addMovieToWatchlist(movie);
-                        System.out.println("Added '" + movie.getTitle() + "' to your watchlist!");
+                        if (watchlistController.addMovieToWatchlist(movie)) {
+                            System.out.println("Added '" + movie.getTitle() + "' to your watchlist!");
+                        } else {
+                            System.out.println("Note: Movie is already in your watchlist.");
+                        }
                     } else {
                         System.out.println("Error: Movie ID not found.");
                     }
@@ -551,17 +555,18 @@ public class MainView {
     private void favoriteMoviesMenu() {
         boolean back = false;
         while (!back) {
-            System.out.println("\n--- FAVORITE MOVIES ---");
+            System.out.println("\n--- MY FAVORITE MOVIES ---");
             System.out.println("1. View my favorite movies");
             System.out.println("2. Add a movie to favorites");
             System.out.println("3. Remove a movie from favorites");
             System.out.println("0. Go back");
             
             int choice = ValidationUtil.getInt(scanner, "Choice: ", 0, 3);
+            String currentUser = authController.getCurrentUser().getUsername(); // Lấy User ID
 
             switch (choice) {
                 case 1:
-                    MyLinkedList<Movie> favMovies = movieController.getFavoriteMovies();
+                    MyLinkedList<Movie> favMovies = movieController.getFavoriteMoviesByUser(currentUser);
                     if (favMovies.isEmpty()) {
                         System.out.println("You haven't favorited any movies yet.");
                     } else {
@@ -573,18 +578,18 @@ public class MainView {
                     break;
                 case 2:
                     String addId = ValidationUtil.getString(scanner, "Enter Movie ID to add to favorites: ");
-                    if (movieController.toggleFavorite(addId, true)) {
+                    if (movieController.toggleFavorite(currentUser, addId, true)) {
                         System.out.println("Added to favorites successfully!");
                     } else {
-                        System.out.println("Error: Movie ID not found.");
+                        System.out.println("Error: Movie ID not found or already in your favorites.");
                     }
                     break;
                 case 3:
                     String removeId = ValidationUtil.getString(scanner, "Enter Movie ID to remove from favorites: ");
-                    if (movieController.toggleFavorite(removeId, false)) {
+                    if (movieController.toggleFavorite(currentUser, removeId, false)) {
                         System.out.println("Removed from favorites successfully!");
                     } else {
-                        System.out.println("Error: Movie ID not found.");
+                        System.out.println("Error: Movie ID not found or not in your favorites.");
                     }
                     break;
                 case 0:
@@ -664,7 +669,7 @@ public class MainView {
                     
                     int totalMinutes = historyController.getTotalWatchTime(authController.getCurrentUser().getUsername());
                     int totalMoviesWatched = historyController.getHistoryByUser(authController.getCurrentUser().getUsername()).size();
-                    int favCount = movieController.getFavoriteMovies().size();
+                    int favCount = movieController.getFavoriteMoviesByUser(authController.getCurrentUser().getUsername()).size();
                     
                     System.out.println("Total Movies Watched : " + totalMoviesWatched);
                     System.out.println("Total Watch Time     : " + totalMinutes + " mins (" + (totalMinutes/60) + " hours)");

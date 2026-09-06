@@ -13,6 +13,8 @@ public class FileHandler {
     private static final String MOVIE_FILE = DIR_PATH + "/movies.txt";
     private static final String CATEGORY_FILE = DIR_PATH + "/categories.txt";
     private static final String HISTORY_FILE = DIR_PATH + "/history.txt";
+    private static final String WATCHLIST_FILE = DIR_PATH + "/watchlist.txt";
+    private static final String FAVORITES_FILE = DIR_PATH + "/favorites.txt";
 
     public FileHandler() {
         File directory = new File(DIR_PATH);
@@ -152,6 +154,54 @@ public class FileHandler {
             }
         } catch (IOException e) {
             System.out.println("Error saving accounts: " + e.getMessage());
+        }
+    }
+
+    public MyLinkedList<String> loadAllWatchlists() {
+        MyLinkedList<String> data = new MyLinkedList<>();
+        File file = new File(WATCHLIST_FILE);
+        if (!file.exists()) return data;
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) data.add(line);
+            }
+        } catch (IOException e) {}
+        return data;
+    }
+
+    public void saveAllWatchlists(MyLinkedList<String> data) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(WATCHLIST_FILE))) {
+            for (int i = 0; i < data.size(); i++) {
+                writer.write(data.get(i));
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving watchlist: " + e.getMessage());
+        }
+    }
+
+    public MyLinkedList<String> loadAllFavorites() {
+        MyLinkedList<String> data = new MyLinkedList<>();
+        File file = new File(FAVORITES_FILE);
+        if (!file.exists()) return data;
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) data.add(line);
+            }
+        } catch (IOException e) {}
+        return data;
+    }
+
+    public void saveAllFavorites(MyLinkedList<String> data) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FAVORITES_FILE))) {
+            for (int i = 0; i < data.size(); i++) {
+                writer.write(data.get(i));
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving favorites: " + e.getMessage());
         }
     }
 }
