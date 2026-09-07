@@ -211,4 +211,52 @@ public class MovieController {
     }
     return String.format("M%02d", maxId + 1);
     }
+
+    public MyLinkedList<Movie> getFavoriteMoviesByUser(String username) {
+        MyLinkedList<Movie> userFavs = new MyLinkedList<>();
+        MyLinkedList<String> allFavs = fileHandler.loadAllFavorites();
+
+        for (int i = 0; i < allFavs.size(); i++) {
+            String[] parts = allFavs.get(i).split("\\|");
+            if (parts.length == 2 && parts[0].equals(username)) {
+                Movie m = findMovieById(parts[1]);
+                if (m != null) {
+                    userFavs.add(m);
+                }
+            }
+        }
+        return userFavs;
+    }
+
+    public boolean toggleFavorite(String username, String id, boolean isAdding) {
+        Movie movie = findMovieById(id);
+        if (movie == null) return false;
+
+        MyLinkedList<String> allFavs = fileHandler.loadAllFavorites();
+        String record = username + "|" + id;
+        boolean exists = false;
+
+        for (int i = 0; i < allFavs.size(); i++) {
+            if (allFavs.get(i).equals(record)) {
+                exists = true;
+                break;
+            }
+        }
+
+        if (isAdding) {
+            if (exists) return false;
+            allFavs.add(record);
+            movie.setFavorites(movie.getFavorites() + 1);
+        } else {
+            if (!exists) return false;
+            allFavs.remove(record);
+            if (movie.getFavorites() > 0) {
+                movie.setFavorites(movie.getFavorites() - 1);
+            }
+        }
+
+        fileHandler.saveAllFavorites(allFavs);
+        fileHandler.saveMovies(movies);
+        return true;
+    }
 }
