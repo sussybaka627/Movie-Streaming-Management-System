@@ -28,6 +28,8 @@ To fulfill rigorous academic requirements, built-in Java collections were avoide
     MyStack: Implemented to provide a Last-In-First-Out (LIFO) "Undo" mechanism for the Watchlist.  
 
 📂 Project StructurePlaintextsrc/
+```text
+src/
 ├── app/
 │   └── Main.java                 # Application entry point
 ├── controllers/                  # Business logic and data flow
