@@ -47,6 +47,7 @@ src/
 │   └── ValidationUtil.java       # Robust input validation and error handling
 └── views/
     └── MainView.java             # Console-based UI and menu navigation
+```
 
 Data Storage
 All system data is persistently stored in flat .txt files located in the data/ directory, acting as a lightweight database.  
